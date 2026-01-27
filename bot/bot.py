@@ -136,6 +136,42 @@ async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def cmd_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Export collected links for Claude to generate digest."""
+    links = get_unpublished_links(since_days=7)
+
+    if not links:
+        await update.message.reply_text("No links collected this week.")
+        return
+
+    # Format for easy copy-paste to Claude
+    lines = ["📋 Links collected this week:", ""]
+
+    # Group by topic
+    links_topic = [l for l in links if l["topic"] == "links"]
+    memes_topic = [l for l in links if l["topic"] == "memes"]
+
+    if links_topic:
+        lines.append("📚 From Links topic:")
+        for link in links_topic:
+            shared_by = f" (by @{link['shared_by']})" if link["shared_by"] else ""
+            lines.append(f"• {link['url']}{shared_by}")
+        lines.append("")
+
+    if memes_topic:
+        lines.append("🎭 From Memes & Delight:")
+        for link in memes_topic:
+            shared_by = f" (by @{link['shared_by']})" if link["shared_by"] else ""
+            lines.append(f"• {link['url']}{shared_by}")
+        lines.append("")
+
+    lines.append(f"Total: {len(links)} links")
+    lines.append("")
+    lines.append("Copy this to Claude to generate the weekly digest!")
+
+    await update.message.reply_text("\n".join(lines), disable_web_page_preview=True)
+
+
 async def cmd_debug(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Debug command to show chat/topic IDs."""
     message = update.message
@@ -161,21 +197,24 @@ def main():
     # Add handlers
     app.add_handler(CommandHandler("digest", cmd_digest))
     app.add_handler(CommandHandler("stats", cmd_stats))
+    app.add_handler(CommandHandler("export", cmd_export))
     app.add_handler(CommandHandler("debug", cmd_debug))
     app.add_handler(MessageHandler(
         filters.TEXT | filters.CAPTION,
         handle_message
     ))
 
-    # Schedule weekly digest
-    job_queue = app.job_queue
-    job_queue.run_daily(
-        post_digest,
-        time=time(hour=config.DIGEST_HOUR, minute=0),
-        days=(config.DIGEST_DAY,)  # Only on specified day
-    )
-
-    logger.info(f"Bot started. Digest scheduled for day {config.DIGEST_DAY} at {config.DIGEST_HOUR}:00 UTC")
+    # Schedule weekly digest (optional - disabled by default)
+    if config.AUTO_POST_ENABLED:
+        job_queue = app.job_queue
+        job_queue.run_daily(
+            post_digest,
+            time=time(hour=config.DIGEST_HOUR, minute=0),
+            days=(config.DIGEST_DAY,)
+        )
+        logger.info(f"Auto-post enabled for day {config.DIGEST_DAY} at {config.DIGEST_HOUR}:00 UTC")
+    else:
+        logger.info("Auto-post disabled. Use /export to get links for Claude.")
 
     # Start polling
     app.run_polling(allowed_updates=Update.ALL_TYPES)

@@ -1,6 +1,6 @@
 # Scenius Links Monitor Bot
 
-Monitors a Telegram group for links shared in specific topics and posts weekly digests to @scenius.
+Monitors a Telegram group for links shared in specific topics. Links are collected automatically, then you ask Claude to generate and post engaging weekly digests to @scenius.
 
 ## Setup
 
@@ -47,7 +47,15 @@ python bot.py
 
 - `/debug` - Show chat and topic IDs (for setup)
 - `/stats` - Show current week's link counts
-- `/digest` - Manually trigger digest (for testing)
+- `/export` - Export collected links (share with Claude to generate digest)
+- `/digest` - Post basic auto-generated digest (for testing)
+
+## Weekly Workflow
+
+1. Bot runs 24/7, collecting links from monitored topics
+2. Each week, run `/export` in the group
+3. Copy the output and share with Claude
+4. Claude generates an engaging narrative digest and posts to @scenius
 
 ## Deployment (Fly.io)
 

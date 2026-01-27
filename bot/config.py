@@ -19,6 +19,9 @@ MONITORED_TOPICS = {
     "memes": os.getenv("TOPIC_MEMES_ID"),
 }
 
+# Auto-post settings (disabled by default - use /export for Claude to generate)
+AUTO_POST_ENABLED = os.getenv("AUTO_POST_ENABLED", "false").lower() == "true"
+
 # Day of week to post digest (0 = Monday, 6 = Sunday)
 DIGEST_DAY = int(os.getenv("DIGEST_DAY", "0"))  # Monday by default
 
