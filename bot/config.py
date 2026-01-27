@@ -27,3 +27,6 @@ DIGEST_DAY = int(os.getenv("DIGEST_DAY", "0"))  # Monday by default
 
 # Hour to post digest (24h format, UTC)
 DIGEST_HOUR = int(os.getenv("DIGEST_HOUR", "9"))  # 9 AM UTC
+
+# API server port (for Claude to fetch links)
+API_PORT = int(os.getenv("API_PORT", "8080"))

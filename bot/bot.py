@@ -2,13 +2,16 @@
 """
 Scenius Links Monitor Bot
 
-Monitors a Telegram group for links shared in specific topics
-and posts weekly digests to the @scenius channel.
+Monitors a Telegram group for links shared in specific topics.
+Exposes an API for Claude to fetch collected links.
 """
 
 import re
+import json
+import asyncio
 import logging
 from datetime import time
+from aiohttp import web
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -136,42 +139,6 @@ async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def cmd_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Export collected links for Claude to generate digest."""
-    links = get_unpublished_links(since_days=7)
-
-    if not links:
-        await update.message.reply_text("No links collected this week.")
-        return
-
-    # Format for easy copy-paste to Claude
-    lines = ["📋 Links collected this week:", ""]
-
-    # Group by topic
-    links_topic = [l for l in links if l["topic"] == "links"]
-    memes_topic = [l for l in links if l["topic"] == "memes"]
-
-    if links_topic:
-        lines.append("📚 From Links topic:")
-        for link in links_topic:
-            shared_by = f" (by @{link['shared_by']})" if link["shared_by"] else ""
-            lines.append(f"• {link['url']}{shared_by}")
-        lines.append("")
-
-    if memes_topic:
-        lines.append("🎭 From Memes & Delight:")
-        for link in memes_topic:
-            shared_by = f" (by @{link['shared_by']})" if link["shared_by"] else ""
-            lines.append(f"• {link['url']}{shared_by}")
-        lines.append("")
-
-    lines.append(f"Total: {len(links)} links")
-    lines.append("")
-    lines.append("Copy this to Claude to generate the weekly digest!")
-
-    await update.message.reply_text("\n".join(lines), disable_web_page_preview=True)
-
-
 async def cmd_debug(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Debug command to show chat/topic IDs."""
     message = update.message
@@ -186,18 +153,75 @@ async def cmd_debug(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-def main():
-    """Start the bot."""
+# --- HTTP API for Claude ---
+
+async def api_links(request):
+    """Return collected links as JSON for Claude to fetch."""
+    days = int(request.query.get("days", 7))
+    links = get_unpublished_links(since_days=days)
+
+    return web.json_response({
+        "links": links,
+        "count": len(links),
+        "topics": {
+            "links": len([l for l in links if l["topic"] == "links"]),
+            "memes": len([l for l in links if l["topic"] == "memes"]),
+        }
+    })
+
+
+async def api_mark_published(request):
+    """Mark links as published after digest is posted."""
+    try:
+        data = await request.json()
+        link_ids = data.get("ids", [])
+        if link_ids:
+            mark_as_published(link_ids)
+            return web.json_response({"status": "ok", "marked": len(link_ids)})
+        return web.json_response({"status": "ok", "marked": 0})
+    except Exception as e:
+        return web.json_response({"status": "error", "message": str(e)}, status=400)
+
+
+async def api_health(request):
+    """Health check endpoint."""
+    return web.json_response({"status": "healthy"})
+
+
+def create_api_app():
+    """Create the aiohttp web application."""
+    app = web.Application()
+    app.router.add_get("/api/links", api_links)
+    app.router.add_post("/api/mark-published", api_mark_published)
+    app.router.add_get("/health", api_health)
+    app.router.add_get("/", api_health)
+    return app
+
+
+async def run_api_server():
+    """Run the HTTP API server."""
+    app = create_api_app()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", config.API_PORT)
+    await site.start()
+    logger.info(f"API server running on port {config.API_PORT}")
+
+
+async def main_async():
+    """Run both Telegram bot and API server."""
     if not config.BOT_TOKEN:
         raise ValueError("BOT_TOKEN not set in environment")
 
-    # Create application
+    # Start API server
+    await run_api_server()
+
+    # Create Telegram application
     app = Application.builder().token(config.BOT_TOKEN).build()
 
     # Add handlers
     app.add_handler(CommandHandler("digest", cmd_digest))
     app.add_handler(CommandHandler("stats", cmd_stats))
-    app.add_handler(CommandHandler("export", cmd_export))
     app.add_handler(CommandHandler("debug", cmd_debug))
     app.add_handler(MessageHandler(
         filters.TEXT | filters.CAPTION,
@@ -213,11 +237,21 @@ def main():
             days=(config.DIGEST_DAY,)
         )
         logger.info(f"Auto-post enabled for day {config.DIGEST_DAY} at {config.DIGEST_HOUR}:00 UTC")
-    else:
-        logger.info("Auto-post disabled. Use /export to get links for Claude.")
 
-    # Start polling
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    # Start polling (this runs forever)
+    logger.info("Bot started. API available at /api/links")
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+
+    # Keep running
+    while True:
+        await asyncio.sleep(3600)
+
+
+def main():
+    """Entry point."""
+    asyncio.run(main_async())
 
 
 if __name__ == "__main__":

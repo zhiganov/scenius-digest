@@ -47,14 +47,22 @@ python bot.py
 
 - `/debug` - Show chat and topic IDs (for setup)
 - `/stats` - Show current week's link counts
-- `/export` - Export collected links (share with Claude to generate digest)
 - `/digest` - Post basic auto-generated digest (for testing)
+
+## API Endpoints
+
+The bot exposes an HTTP API for Claude to fetch links:
+
+- `GET /api/links` - Returns collected links as JSON
+- `GET /api/links?days=14` - Links from last 14 days
+- `POST /api/mark-published` - Mark links as published (body: `{"ids": [1,2,3]}`)
+- `GET /health` - Health check
 
 ## Weekly Workflow
 
-1. Bot runs 24/7, collecting links from monitored topics
-2. Each week, run `/export` in the group
-3. Copy the output and share with Claude
+1. Bot runs 24/7 on Fly.io, collecting links from monitored topics
+2. Ask Claude to "generate links digest"
+3. Claude fetches links from `https://scenius-digest-bot.fly.dev/api/links`
 4. Claude generates an engaging narrative digest and posts to @scenius
 
 ## Deployment (Fly.io)

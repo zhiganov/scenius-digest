@@ -30,14 +30,18 @@ keyword:"scenius" scope:title
 ## 2. Weekly Links Roundup
 
 ### Source
-User provides output from `/export` command in the Telegram group bot. This contains links collected from "Links" and "Memes & Delight" topics.
+Bot API running on Fly.io. Fetch collected links from:
+```
+https://scenius-digest-bot.fly.dev/api/links
+```
 
 ### Workflow
-1. User runs `/export` in the Telegram group
-2. User shares the output with Claude
+1. User says "generate links digest" (or similar)
+2. Claude fetches collected links from the API
 3. Claude fetches each link to understand what it's about
 4. Claude generates an engaging narrative digest
 5. Claude posts to @scenius channel
+6. Claude marks links as published via API
 
 ### Format
 ```
