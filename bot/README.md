@@ -49,14 +49,70 @@ python bot.py
 - `/stats` - Show current week's link counts
 - `/digest` - Manually trigger digest (for testing)
 
-## Deployment
+## Deployment (Fly.io)
 
-For 24/7 operation, deploy to:
-- **Railway** - Easy Python hosting
-- **Fly.io** - Free tier available
-- **VPS** - Run with systemd or supervisor
+### 1. Install Fly CLI
 
-Example systemd service:
+```bash
+# macOS
+brew install flyctl
+
+# Windows
+powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+
+# Linux
+curl -L https://fly.io/install.sh | sh
+```
+
+### 2. Login & Launch
+
+```bash
+cd bot
+fly auth login
+fly launch --no-deploy
+```
+
+When prompted:
+- App name: `scenius-digest-bot` (or your choice)
+- Region: pick one close to you
+- Don't set up Postgres/Redis
+
+### 3. Create Volume for Database
+
+```bash
+fly volumes create scenius_data --size 1 --region ams
+```
+
+### 4. Set Secrets
+
+```bash
+fly secrets set BOT_TOKEN="your_bot_token_here"
+fly secrets set MONITOR_GROUP_ID="-1001234567890"
+fly secrets set TOPIC_LINKS_ID="123"
+fly secrets set TOPIC_MEMES_ID="456"
+```
+
+### 5. Deploy
+
+```bash
+fly deploy
+```
+
+### 6. Check Logs
+
+```bash
+fly logs
+```
+
+### Updating
+
+After code changes:
+```bash
+fly deploy
+```
+
+## Alternative: VPS with systemd
+
 ```ini
 [Unit]
 Description=Scenius Links Bot

@@ -1,0 +1,18 @@
+app = "scenius-digest-bot"
+primary_region = "ams"
+
+[build]
+
+[env]
+  DIGEST_DAY = "0"
+  DIGEST_HOUR = "9"
+  DIGEST_CHANNEL_ID = "-1002708526104"
+  DATA_DIR = "/app/data"
+
+[mounts]
+  source = "scenius_data"
+  destination = "/app/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

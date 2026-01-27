@@ -1,8 +1,11 @@
+import os
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "links.db"
+# Use /app/data for Fly.io volume, otherwise local directory
+DATA_DIR = Path(os.getenv("DATA_DIR", Path(__file__).parent))
+DB_PATH = DATA_DIR / "links.db"
 
 
 def init_db():
