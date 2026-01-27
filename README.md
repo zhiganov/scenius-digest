@@ -56,6 +56,33 @@ Self-hosted Python bot - see [bot/README.md](bot/README.md) for:
 - **Bot:** @sensemaking_bot
 - **Channel:** [@scenius](https://t.me/scenius)
 
+## Claude Code Commands
+
+This repo includes custom slash commands for Claude Code:
+
+| Command | Description |
+|---------|-------------|
+| `/digest-links` | Generate weekly links roundup from collected links |
+| `/digest-meeting` | Generate digest from latest Scenius meeting |
+
+### Usage
+
+```bash
+git clone https://github.com/sensemaking-scenius/scenius-digest
+cd scenius-digest
+claude  # start Claude Code
+```
+
+Then type `/digest-links` or `/digest-meeting`.
+
+### Requirements
+
+To use these commands, you need Claude Code configured with:
+- **Zapier MCP** - with Telegram "Send Message" action connected to @sensemaking_bot
+- **Fireflies MCP** - for accessing meeting transcripts (meeting digests only)
+
+Contact [@zhiganov](https://t.me/zhiganov) if you want to help with digest generation.
+
 ## Contributing
 
 This is an open source project by [Sensemaking Scenius](https://github.com/sensemaking-scenius). PRs welcome!
