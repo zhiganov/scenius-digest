@@ -20,9 +20,14 @@ This project automatically:
 - **Zapier MCP** - Automation orchestration
 - **Telegram Bot API** - Channel publishing
 
-## Meeting Schedule
+## Meeting Filter
 
-Biweekly meetings are summarized and published automatically.
+Only meetings with **"scenius"** in the title are included. This captures:
+- Scenius Town Hall (biweekly)
+- Scenius Fundraising Bi-weekly
+- Scenius gem sharing ritual
+- Scenius Open-Source Panel Discussion
+- Other Scenius-related sessions
 
 ## Contributing
 
