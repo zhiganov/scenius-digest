@@ -1,96 +1,123 @@
-# Scenius Digest - Claude Instructions
+# CLAUDE.md
 
-## Purpose
-Generate and publish digests to the public Telegram channel @scenius:
-1. **Meeting digests** - Summaries of biweekly Scenius calls
-2. **Weekly links roundup** - Curated links shared by the community
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Scenius Digest publishes curated highlights from the Sensemaking Scenius community to the [@scenius](https://t.me/scenius) Telegram channel. Two types of content:
+
+1. **Meeting digests** - Narrative summaries of biweekly Scenius calls (from Fireflies.ai)
+2. **Weekly links roundup** - Curated links from community Telegram topics (from bot API)
+
+## Architecture
+
+```
+Fireflies.ai ──► Claude Code + Zapier MCP ──┐
+                                            ├──► @scenius Telegram channel
+Telegram Group ──► Monitor Bot (Fly.io) ────┘
+```
+
+- **bot/** - Python Telegram bot that monitors group topics and exposes API
+- **.claude/commands/** - Slash commands for digest generation
+
+## Development Commands
+
+```bash
+# Bot development
+cd bot
+pip install -r requirements.txt
+python bot.py
+
+# Deploy to Fly.io
+cd bot
+fly deploy
+
+# Check logs
+fly logs
+```
+
+## Bot API
+
+When deployed at `https://scenius-digest-bot.fly.dev`:
+
+- `GET /api/links` - Collected links (JSON)
+- `GET /api/links?days=14` - Links from last N days
+- `POST /api/mark-published` - Mark as published: `{"ids": [1,2,3]}`
+
+## MCP Integrations Required
+
+- **Zapier MCP** - Telegram "Send Message" to @sensemaking_bot
+- **Fireflies MCP** - Meeting transcripts (filter: `keyword:"scenius" scope:title`)
 
 ---
 
-## 1. Meeting Digests
+## Digest Generation Instructions
 
-### Source
-Fireflies.ai transcripts. Filter by meetings with **"scenius"** in the title:
-```
-keyword:"scenius" scope:title
-```
+### Meeting Digests
 
-### Format
+Source: Fireflies.ai transcripts filtered by `keyword:"scenius" scope:title`
+
+Format:
 ```
 📋 [Meeting Title] Digest
 🗓 [Date] • ⏱ [Duration] min
 
-[Engaging narrative paragraphs that tell the story of what was discussed. Highlight interesting ideas, projects, and insights. Use a conversational tone that makes readers feel like they were there. Include specific details that make it compelling - numbers, project names, interesting concepts.]
+[Engaging narrative paragraphs - tell the story of what was discussed. Highlight interesting ideas, projects, insights. Conversational tone. Include specific details - numbers, project names, concepts.]
 
-[Second paragraph diving deeper into one or two highlights that would interest people outside the community.]
+[Second paragraph diving into highlights that would interest people outside the community.]
 ```
 
----
+### Weekly Links Roundup
 
-## 2. Weekly Links Roundup
+Source: `GET https://scenius-digest-bot.fly.dev/api/links`
 
-### Source
-Bot API running on Fly.io. Fetch collected links from:
-```
-https://scenius-digest-bot.fly.dev/api/links
-```
+Workflow:
+1. Fetch links from API
+2. Fetch each URL to understand content
+3. Generate narrative digest
+4. Post to @scenius (chat_id: -1002708526104)
+5. Mark links as published via API
 
-### Workflow
-1. User says "generate links digest" (or similar)
-2. Claude fetches collected links from the API
-3. Claude fetches each link to understand what it's about
-4. Claude generates an engaging narrative digest
-5. Claude posts to @scenius channel
-6. Claude marks links as published via API
-
-### Format
+Format:
 ```
 🔗 Weekly Links Roundup
 🗓 Week of [Date]
 
-[Opening sentence about what the community has been exploring this week.]
+[Opening sentence about what the community explored this week.]
 
 📚 Worth Reading
 
-[For each interesting link: 1-2 sentence description of why it's interesting, what it's about, and why Scenius folks are sharing it. Make it compelling - don't just describe, explain why it matters.]
+[1-2 sentence description per link - why it's interesting, why it matters]
 
-• [Title or description] - [URL]
+• [Title] - [URL]
 
 🎭 Memes & Delight
 
-[Brief fun intro for the lighter content]
+[Brief fun intro]
 
 • [URL]
 
-[Closing line inviting people to join the conversation]
+[Closing line inviting people to join]
 ```
 
-### Process for Links
-- Fetch each URL to understand its content
-- Write engaging descriptions (not just titles)
-- Group thematically if there are patterns
-- Skip broken links or duplicates
-- Credit sharers when it adds context (e.g., "via @username")
-
----
-
-## Writing Style (Both Types)
+### Writing Style
 
 - Narrative and engaging, not bullet points
-- Highlight the most interesting/novel ideas
-- Include specific details (numbers, project names, concepts)
-- Make it feel like sharing exciting discoveries with friends
-- Conversational tone appropriate for Telegram
+- Highlight interesting/novel ideas
+- Specific details (numbers, names, concepts)
+- Conversational tone for Telegram
+- Credit sharers when relevant (e.g., "via @username")
 
-## What NOT to Include
+### What NOT to Include
 
-- Action items (internal task assignments)
+- Action items or internal task assignments
 - Internal governance details
-- Sensitive or private discussions
+- Sensitive/private discussions
 - Broken links
+- Transcript links (require login)
 
-## Telegram Channel
+## Telegram
 
-- Channel: @scenius (https://t.me/scenius)
+- Channel: @scenius
 - Chat ID: -1002708526104
 - Bot: @sensemaking_bot
