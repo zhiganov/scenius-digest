@@ -1,4 +1,6 @@
 import os
+import json
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -6,18 +8,56 @@ load_dotenv()
 # Telegram Bot Token (get from @BotFather)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# Group to monitor (get after adding bot to group)
-MONITOR_GROUP_ID = os.getenv("MONITOR_GROUP_ID")
+# Load groups configuration
+GROUPS_FILE = Path(__file__).parent / "groups.json"
 
-# Channel to post digests to
-DIGEST_CHANNEL_ID = os.getenv("DIGEST_CHANNEL_ID", "-1002708526104")  # @scenius
+def load_groups():
+    """Load monitored groups from JSON config file."""
+    if GROUPS_FILE.exists():
+        with open(GROUPS_FILE) as f:
+            return json.load(f)
 
-# Topic IDs to monitor (get from group settings or message_thread_id)
-# You'll need to update these after identifying the correct topic IDs
-MONITORED_TOPICS = {
-    "links": os.getenv("TOPIC_LINKS_ID"),
-    "memes": os.getenv("TOPIC_MEMES_ID"),
-}
+    # Fallback: build from legacy env vars for backward compatibility
+    legacy_group_id = os.getenv("MONITOR_GROUP_ID")
+    if legacy_group_id:
+        return {
+            "default": {
+                "name": "Default Group",
+                "group_id": legacy_group_id,
+                "output_channel": os.getenv("DIGEST_CHANNEL_ID", "-1002708526104"),
+                "topics": {
+                    "links": os.getenv("TOPIC_LINKS_ID"),
+                    "memes": os.getenv("TOPIC_MEMES_ID"),
+                }
+            }
+        }
+
+    return {}
+
+MONITORED_GROUPS = load_groups()
+
+def get_group_by_chat_id(chat_id: str) -> tuple[str, dict] | tuple[None, None]:
+    """Find group config by chat ID. Returns (group_key, group_config) or (None, None)."""
+    chat_id = str(chat_id)
+    for key, config in MONITORED_GROUPS.items():
+        if str(config.get("group_id")) == chat_id:
+            return key, config
+    return None, None
+
+def get_topic_name(group_key: str, thread_id: str) -> str | None:
+    """Get topic name for a thread ID within a specific group."""
+    if group_key not in MONITORED_GROUPS:
+        return None
+    topics = MONITORED_GROUPS[group_key].get("topics", {})
+    thread_id = str(thread_id) if thread_id else None
+    for name, tid in topics.items():
+        if str(tid) == thread_id:
+            return name
+    return None
+
+def get_all_group_ids() -> list[str]:
+    """Get list of all monitored group IDs."""
+    return [str(g.get("group_id")) for g in MONITORED_GROUPS.values()]
 
 # Auto-post settings (disabled by default - use /export for Claude to generate)
 AUTO_POST_ENABLED = os.getenv("AUTO_POST_ENABLED", "false").lower() == "true"

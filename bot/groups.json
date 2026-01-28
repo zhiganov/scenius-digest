@@ -1,0 +1,20 @@
+{
+  "scenius": {
+    "name": "Sensemaking Scenius",
+    "group_id": "-1002141367711",
+    "output_channel": "-1002708526104",
+    "topics": {
+      "links": "230",
+      "memes": "4605"
+    }
+  },
+  "cibc": {
+    "name": "Citizen Infra Builders",
+    "group_id": "-1003188266615",
+    "output_channel": "-1001800461815",
+    "topics": {
+      "news": "11",
+      "resources": "266"
+    }
+  }
+}

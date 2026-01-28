@@ -4,28 +4,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Scenius Digest publishes curated highlights from the Sensemaking Scenius community to the [@scenius](https://t.me/scenius) Telegram channel. Two types of content:
+Multi-community digest bot that collects links from Telegram groups and publishes curated digests to their respective channels.
 
-1. **Meeting digests** - Narrative summaries of biweekly Scenius Zoom calls (transcripts via Fireflies.ai)
+**Supported communities:**
+- **Sensemaking Scenius** → @scenius channel
+- **Citizen Infra Builders** → Citizen Infrastructure channel
+
+Two types of content:
+1. **Meeting digests** - Narrative summaries of Zoom calls (transcripts via Fireflies.ai)
 2. **Weekly links roundup** - Curated links from community Telegram topics (from bot API)
 
 ## Architecture
 
 ```
-Zoom Meetings ──► Fireflies.ai ──┐
-                                 ├──► Claude Code ──► @scenius channel
-Telegram Group ──► Bot (Fly.io) ─┘
+Telegram Groups ──► Bot (Fly.io) ──► Claude Code ──► Output Channels
+                                          │
+Zoom Meetings ──► Fireflies.ai ───────────┘
 ```
 
 **Bot components** (`bot/`):
-- `bot.py` - Main entry: Telegram handlers + aiohttp API server (runs concurrently)
-- `database.py` - SQLite storage with `links` table (URL, topic, shared_by, message_text)
-- `config.py` - Environment variables (BOT_TOKEN, MONITOR_GROUP_ID, TOPIC_*_ID)
-- `digest.py` - Basic digest formatting (Claude generates better narratives)
+- `bot.py` - Main entry: Telegram handlers + aiohttp API server
+- `database.py` - SQLite storage with `links` table (includes group_id, group_name)
+- `config.py` - Loads groups from `groups.json`
+- `groups.json` - Multi-group configuration
+- `digest.py` - Digest formatting (supports any topic names)
 
 **Slash commands** (`.claude/commands/`):
-- `digest-links.md` - Weekly links roundup workflow
+- `digest-links.md` - Weekly links roundup workflow (supports group argument)
 - `digest-meeting.md` - Meeting digest workflow
+
+## Multi-Group Configuration
+
+Groups are defined in `bot/groups.json`:
+
+```json
+{
+  "scenius": {
+    "name": "Sensemaking Scenius",
+    "group_id": "-1002141367711",
+    "output_channel": "-1002708526104",
+    "topics": { "links": "230", "memes": "4605" }
+  },
+  "cibc": {
+    "name": "Citizen Infra Builders",
+    "group_id": "-1003188266615",
+    "output_channel": "-1001800461815",
+    "topics": { "news": "11", "resources": "266" }
+  }
+}
+```
 
 ## Development Commands
 
@@ -48,12 +75,23 @@ Deployed at `https://scenius-digest-bot.fly.dev`:
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /api/links` | Unpublished links (JSON) |
+| `GET /api/links` | All unpublished links |
+| `GET /api/links?group=cibc` | Links from specific group |
 | `GET /api/links?days=14` | Links from last N days |
+| `GET /api/groups` | List configured groups |
 | `POST /api/mark-published` | Mark as published: `{"ids": [1,2,3]}` |
 | `GET /health` | Health check |
 
-Response includes `message_text` field with original sharer's commentary.
+Response includes `group_id`, `group_name`, and `message_text` fields.
+
+## Bot Commands
+
+| Command | Description |
+|---------|-------------|
+| `/debug` | Show chat/topic IDs, check if monitored |
+| `/groups` | List all configured groups |
+| `/stats [group]` | Show link statistics |
+| `/digest [group]` | Post digest for group |
 
 ## MCP Integrations
 
@@ -67,7 +105,7 @@ Use the bot's API token directly:
 ```bash
 curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
   -H "Content-Type: application/json" \
-  -d '{"chat_id": "-1002708526104", "text": "Your message", "disable_web_page_preview": true}'
+  -d '{"chat_id": "{output_channel}", "text": "...", "disable_web_page_preview": true}'
 ```
 
 BOT_TOKEN is stored as a Fly.io secret.
@@ -92,29 +130,29 @@ Format:
 
 ### Weekly Links Roundup
 
-Source: `GET https://scenius-digest-bot.fly.dev/api/links`
+Source: `GET https://scenius-digest-bot.fly.dev/api/links?group={group}`
 
 Workflow:
-1. Fetch links from API
+1. Fetch links from API (with group filter)
 2. Fetch each URL to understand content
 3. Generate narrative digest
-4. Post to @scenius (chat_id: -1002708526104)
+4. Post to group's output_channel
 5. Mark links as published via API
 
 Format:
 ```
-🔗 Weekly Links Roundup
+🔗 {Group Name} Links Digest
 🗓 Week of [Date]
 
 [Opening sentence about what the community explored this week.]
 
-📚 Worth Reading
+📚 Worth Reading / 📰 News / 📚 Resources (topic-appropriate)
 
 [1-2 sentence description per link - why it's interesting, why it matters]
 
 • [Title] - [URL]
 
-🎭 Memes & Delight
+🎭 Memes & Delight (if applicable)
 
 [Brief fun intro]
 
@@ -139,13 +177,9 @@ Format:
 - Broken links
 - Transcript links (require login)
 
-## Telegram
+## Telegram Groups
 
-| Resource | Value |
-|----------|-------|
-| Channel | @scenius |
-| Channel Chat ID | -1002708526104 |
-| Bot | @sensemaking_bot |
-| Monitored Group | -1002141367711 |
-| Links Topic ID | 230 |
-| Memes Topic ID | 4605 |
+| Group | Key | Group ID | Output Channel | Topics |
+|-------|-----|----------|----------------|--------|
+| Sensemaking Scenius | scenius | -1002141367711 | -1002708526104 (@scenius) | links, memes |
+| Citizen Infra Builders | cibc | -1003188266615 | -1001800461815 | news, resources |
