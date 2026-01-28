@@ -10,18 +10,29 @@ You already have @sensemaking_bot. Get its token from @BotFather:
 - Message @BotFather
 - Send `/mybots` → select @sensemaking_bot → API Token
 
-### 2. Add Bot to Your Group
+### 2. Register Commands with BotFather
+
+Message @BotFather to make commands visible in Telegram:
+- Send `/mybots` → select your bot → Edit Bot → Edit Commands
+- Send:
+```
+debug - Show chat and topic IDs
+stats - Show current week's link counts
+digest - Post digest (testing)
+```
+
+### 3. Add Bot to Your Group
 
 - Add @sensemaking_bot to your private Telegram group
 - Make it admin (so it can read messages)
 
-### 3. Get Group and Topic IDs
+### 4. Get Group and Topic IDs
 
 In the group, send `/debug` in each topic you want to monitor:
 - Go to "Links" topic → send `/debug` → note the Chat ID and Topic/Thread ID
 - Go to "Memes & Delight" topic → send `/debug` → note the Topic/Thread ID
 
-### 4. Configure Environment
+### 5. Configure Environment
 
 ```bash
 cp .env.example .env
@@ -35,7 +46,7 @@ TOPIC_LINKS_ID=123
 TOPIC_MEMES_ID=456
 ```
 
-### 5. Install & Run
+### 6. Install & Run
 
 ```bash
 cd bot
