@@ -8,7 +8,7 @@ Multi-community digest bot that collects links from Telegram groups and publishe
 
 **Supported communities:**
 - **Sensemaking Scenius** → @scenius channel
-- **Citizen Infra Builders** → Citizen Infrastructure channel
+- **Citizen Infra Builders** → [@citizen_infra](https://t.me/citizen_infra) channel
 
 Two types of content:
 1. **Meeting digests** - Narrative summaries of Zoom calls (transcripts via Fireflies.ai)
@@ -182,4 +182,4 @@ Format:
 | Group | Key | Group ID | Output Channel | Topics |
 |-------|-----|----------|----------------|--------|
 | Sensemaking Scenius | scenius | -1002141367711 | -1002708526104 (@scenius) | links, memes |
-| Citizen Infra Builders | cibc | -1003188266615 | -1001800461815 | news, resources |
+| Citizen Infra Builders | cibc | -1003188266615 | -1001800461815 (@citizen_infra) | news, resources |

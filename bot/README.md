@@ -7,7 +7,7 @@ Monitors multiple Telegram groups for links shared in specific topics. Links are
 | Community | Group Key | Output Channel |
 |-----------|-----------|----------------|
 | Sensemaking Scenius | `scenius` | @scenius |
-| Citizen Infra Builders | `cibc` | Citizen Infrastructure |
+| Citizen Infra Builders | `cibc` | [@citizen_infra](https://t.me/citizen_infra) |
 
 ## Setup
 

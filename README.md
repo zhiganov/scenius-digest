@@ -7,7 +7,7 @@ Curated highlights from multiple communities, automatically published to their r
 | Community | Output Channel |
 |-----------|----------------|
 | Sensemaking Scenius | [@scenius](https://t.me/scenius) |
-| Citizen Infra Builders | Citizen Infrastructure |
+| Citizen Infra Builders | [@citizen_infra](https://t.me/citizen_infra) |
 
 ## What It Does
 
