@@ -17,8 +17,15 @@ Fireflies.ai ──► Claude Code ──┐
 Telegram Group ──► Bot (Fly.io) ┘
 ```
 
-- **bot/** - Python Telegram bot that monitors group topics and exposes API
-- **.claude/commands/** - Slash commands for digest generation
+**Bot components** (`bot/`):
+- `bot.py` - Main entry: Telegram handlers + aiohttp API server (runs concurrently)
+- `database.py` - SQLite storage with `links` table (URL, topic, shared_by, message_text)
+- `config.py` - Environment variables (BOT_TOKEN, MONITOR_GROUP_ID, TOPIC_*_ID)
+- `digest.py` - Basic digest formatting (Claude generates better narratives)
+
+**Slash commands** (`.claude/commands/`):
+- `digest-links.md` - Weekly links roundup workflow
+- `digest-meeting.md` - Meeting digest workflow
 
 ## Development Commands
 
@@ -26,31 +33,36 @@ Telegram Group ──► Bot (Fly.io) ┘
 # Bot development
 cd bot
 pip install -r requirements.txt
+cp .env.example .env  # then fill in values
 python bot.py
 
 # Deploy to Fly.io
-cd bot
 fly deploy
-
-# Check logs
-fly logs
+fly logs              # check logs
+fly secrets list      # view configured secrets
 ```
 
 ## Bot API
 
-When deployed at `https://scenius-digest-bot.fly.dev`:
+Deployed at `https://scenius-digest-bot.fly.dev`:
 
-- `GET /api/links` - Collected links (JSON)
-- `GET /api/links?days=14` - Links from last N days
-- `POST /api/mark-published` - Mark as published: `{"ids": [1,2,3]}`
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/links` | Unpublished links (JSON) |
+| `GET /api/links?days=14` | Links from last N days |
+| `POST /api/mark-published` | Mark as published: `{"ids": [1,2,3]}` |
+| `GET /health` | Health check |
 
-## MCP Integrations Required
+Response includes `message_text` field with original sharer's commentary.
+
+## MCP Integrations
 
 - **Fireflies MCP** - Meeting transcripts (filter: `keyword:"scenius" scope:title`)
+- **Firecrawl MCP** - Scrape link content for digest summaries
 
 ## Posting to Telegram
 
-Use the bot's API token directly via curl:
+Use the bot's API token directly:
 
 ```bash
 curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
@@ -58,7 +70,7 @@ curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
   -d '{"chat_id": "-1002708526104", "text": "Your message", "disable_web_page_preview": true}'
 ```
 
-The bot token is stored as a Fly.io secret. For local testing, use `fly secrets list` or set BOT_TOKEN in .env.
+BOT_TOKEN is stored as a Fly.io secret.
 
 ---
 
@@ -129,6 +141,11 @@ Format:
 
 ## Telegram
 
-- Channel: @scenius
-- Chat ID: -1002708526104
-- Bot: @sensemaking_bot
+| Resource | Value |
+|----------|-------|
+| Channel | @scenius |
+| Channel Chat ID | -1002708526104 |
+| Bot | @sensemaking_bot |
+| Monitored Group | -1002141367711 |
+| Links Topic ID | 230 |
+| Memes Topic ID | 4605 |
