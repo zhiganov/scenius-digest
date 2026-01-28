@@ -8,7 +8,7 @@ Curated highlights from the Sensemaking Scenius community, automatically publish
 Summarizes biweekly Scenius Zoom calls and publishes engaging narrative recaps.
 - Source: Fireflies.ai transcripts (auto-recorded from Zoom)
 - Filter: Meetings with "scenius" in the title
-- Includes: Town Halls, Panel Discussions, Gem Sharing, Fundraising calls
+- Trigger: Manual via `/digest-meeting` command in Claude Code
 
 ### 2. Weekly Links Roundup
 Monitors community conversations and curates the best links shared each week.
