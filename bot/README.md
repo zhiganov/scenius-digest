@@ -156,8 +156,17 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-## Schedule
+## Auto-Post (Optional)
 
-By default, digests post every Monday at 9 AM UTC. Change via environment:
-- `DIGEST_DAY` - 0=Monday, 6=Sunday
-- `DIGEST_HOUR` - Hour in UTC (0-23)
+The bot can auto-post basic digests, but Claude Code generates better narrative digests. Auto-post is **disabled by default**.
+
+To enable auto-post (basic formatting only):
+```bash
+fly secrets set AUTO_POST_ENABLED=true
+```
+
+Configure schedule via environment:
+- `DIGEST_DAY` - 0=Monday, 6=Sunday (default: 0)
+- `DIGEST_HOUR` - Hour in UTC, 0-23 (default: 9)
+
+**Recommended workflow:** Keep auto-post disabled. Use `/digest-links` in Claude Code for narrative digests.

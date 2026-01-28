@@ -13,7 +13,7 @@ Summarizes biweekly Scenius Zoom calls and publishes engaging narrative recaps.
 ### 2. Weekly Links Roundup
 Monitors community conversations and curates the best links shared each week.
 - Source: Telegram group topics ("Links" and "Memes & Delight")
-- Schedule: Auto-posts every Monday 9 AM UTC
+- Trigger: Manual via `/digest-links` command in Claude Code
 
 ## Architecture
 
