@@ -13,7 +13,14 @@ Summarize the latest Scenius meeting and publish to @scenius.
 
 3. Generate an engaging narrative digest following the format in CLAUDE.md
 
-4. Post the digest to the @scenius Telegram channel (chat_id: -1002708526104)
+4. Post the digest to @scenius via Telegram Bot API:
+   ```bash
+   curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+     -H "Content-Type: application/json" \
+     -d '{"chat_id": "-1002708526104", "text": "...", "disable_web_page_preview": true}'
+   ```
+
+   BOT_TOKEN: `8511113052:AAEPY6UeziC7FoniUibvIduBlDA8rBb77og`
 
 ## Format
 

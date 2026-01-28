@@ -25,8 +25,8 @@ Monitors community conversations and curates the best links shared each week.
          │                       │
          ▼                       ▼
 ┌─────────────────┐     ┌─────────────────┐
-│   Claude Code   │     │  Monitor Bot    │
-│  + Zapier MCP   │     │   (Fly.io)      │
+│   Claude Code   │     │ @sensemaking_bot│
+│ + Fireflies MCP │     │   (Fly.io)      │
 └────────┬────────┘     └────────┬────────┘
          │                       │
          └───────────┬───────────┘
@@ -40,9 +40,9 @@ Monitors community conversations and curates the best links shared each week.
 ## Setup
 
 ### Meeting Digests
-Uses Claude Code with Zapier MCP integration:
+Uses Claude Code with Fireflies MCP:
 - Fireflies.ai for meeting transcripts
-- Zapier MCP for Telegram posting
+- Posts via Telegram Bot API (no Zapier needed)
 - See [CLAUDE.md](CLAUDE.md) for digest format guidelines
 
 ### Links Monitor Bot
@@ -78,8 +78,8 @@ Then type `/digest-links` or `/digest-meeting`.
 ### Requirements
 
 To use these commands, you need Claude Code configured with:
-- **Zapier MCP** - with Telegram "Send Message" action connected to @sensemaking_bot
 - **Fireflies MCP** - for accessing meeting transcripts (meeting digests only)
+- **Bot token** - for posting to Telegram (stored in slash command files)
 
 Contact [@zhiganov](https://t.me/zhiganov) if you want to help with digest generation.
 

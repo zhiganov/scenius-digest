@@ -23,9 +23,16 @@ def init_db():
             shared_by TEXT,
             shared_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             message_id INTEGER,
+            message_text TEXT,
             published INTEGER DEFAULT 0
         )
     """)
+
+    # Add message_text column if it doesn't exist (migration for existing DBs)
+    cursor.execute("PRAGMA table_info(links)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if "message_text" not in columns:
+        cursor.execute("ALTER TABLE links ADD COLUMN message_text TEXT")
 
     cursor.execute("""
         CREATE INDEX IF NOT EXISTS idx_published ON links(published)
@@ -40,7 +47,7 @@ def init_db():
 
 
 def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
-             description: str = None, message_id: int = None):
+             description: str = None, message_id: int = None, message_text: str = None):
     """Add a new link to the database."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -56,9 +63,9 @@ def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
         return False  # Duplicate
 
     cursor.execute("""
-        INSERT INTO links (url, title, description, topic, shared_by, message_id)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (url, title, description, topic, shared_by, message_id))
+        INSERT INTO links (url, title, description, topic, shared_by, message_id, message_text)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (url, title, description, topic, shared_by, message_id, message_text))
 
     conn.commit()
     conn.close()

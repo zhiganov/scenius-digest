@@ -12,9 +12,9 @@ Scenius Digest publishes curated highlights from the Sensemaking Scenius communi
 ## Architecture
 
 ```
-Fireflies.ai ──► Claude Code + Zapier MCP ──┐
-                                            ├──► @scenius Telegram channel
-Telegram Group ──► Monitor Bot (Fly.io) ────┘
+Fireflies.ai ──► Claude Code ──┐
+                               ├──► @scenius Telegram channel
+Telegram Group ──► Bot (Fly.io) ┘
 ```
 
 - **bot/** - Python Telegram bot that monitors group topics and exposes API
@@ -46,8 +46,19 @@ When deployed at `https://scenius-digest-bot.fly.dev`:
 
 ## MCP Integrations Required
 
-- **Zapier MCP** - Telegram "Send Message" to @sensemaking_bot
 - **Fireflies MCP** - Meeting transcripts (filter: `keyword:"scenius" scope:title`)
+
+## Posting to Telegram
+
+Use the bot's API token directly via curl:
+
+```bash
+curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+  -H "Content-Type: application/json" \
+  -d '{"chat_id": "-1002708526104", "text": "Your message", "disable_web_page_preview": true}'
+```
+
+The bot token is stored as a Fly.io secret. For local testing, use `fly secrets list` or set BOT_TOKEN in .env.
 
 ---
 

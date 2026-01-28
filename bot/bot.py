@@ -88,7 +88,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             url=url,
             topic=topic_name,
             shared_by=shared_by,
-            message_id=message.message_id
+            message_id=message.message_id,
+            message_text=text
         )
         if added:
             logger.info(f"Stored link from {shared_by} in {topic_name}: {url}")
