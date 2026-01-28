@@ -5,8 +5,8 @@ Curated highlights from the Sensemaking Scenius community, automatically publish
 ## What It Does
 
 ### 1. Meeting Digests
-Summarizes biweekly Scenius meetings and publishes engaging narrative recaps.
-- Source: Fireflies.ai transcripts
+Summarizes biweekly Scenius Zoom calls and publishes engaging narrative recaps.
+- Source: Fireflies.ai transcripts (auto-recorded from Zoom)
 - Filter: Meetings with "scenius" in the title
 - Includes: Town Halls, Panel Discussions, Gem Sharing, Fundraising calls
 

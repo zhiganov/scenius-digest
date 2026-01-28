@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Scenius Digest publishes curated highlights from the Sensemaking Scenius community to the [@scenius](https://t.me/scenius) Telegram channel. Two types of content:
 
-1. **Meeting digests** - Narrative summaries of biweekly Scenius calls (from Fireflies.ai)
+1. **Meeting digests** - Narrative summaries of biweekly Scenius Zoom calls (transcripts via Fireflies.ai)
 2. **Weekly links roundup** - Curated links from community Telegram topics (from bot API)
 
 ## Architecture
