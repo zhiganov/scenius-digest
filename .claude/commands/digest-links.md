@@ -20,7 +20,7 @@ Fetch collected links from the Scenius bot and publish a digest to @scenius.
      -d '{"chat_id": "-1002708526104", "text": "...", "disable_web_page_preview": true}'
    ```
 
-   BOT_TOKEN: `8511113052:AAEPY6UeziC7FoniUibvIduBlDA8rBb77og`
+   BOT_TOKEN: Get via `fly secrets list -a scenius-digest-bot` or ask @zhiganov
 
 5. After posting, mark links as published:
    ```
