@@ -12,9 +12,11 @@ Scenius Digest publishes curated highlights from the Sensemaking Scenius communi
 ## Architecture
 
 ```
-Fireflies.ai ──► Claude Code ──┐
-                               ├──► @scenius Telegram channel
-Telegram Group ──► Bot (Fly.io) ┘
+Fireflies.ai ────────┐
+                     ├──► Claude Code ──► @scenius Telegram channel
+Bot (Fly.io) ────────┘
+     ▲
+Telegram Group
 ```
 
 **Bot components** (`bot/`):
