@@ -6,7 +6,7 @@ Fetch collected links from the Scenius bot and publish a digest to @scenius.
 
 1. Fetch links from the bot API:
    ```
-   GET https://scenius-digest-bot.fly.dev/api/links
+   GET https://scenius-digest.vercel.app/api/links
    ```
 
 2. For each link, fetch the URL to understand what it's about (use Firecrawl)
@@ -20,11 +20,11 @@ Fetch collected links from the Scenius bot and publish a digest to @scenius.
      -d '{"chat_id": "-1002708526104", "text": "...", "disable_web_page_preview": true}'
    ```
 
-   BOT_TOKEN: Get via `fly secrets list -a scenius-digest-bot` or ask @zhiganov
+   BOT_TOKEN: stored as Vercel env var, or ask @zhiganov
 
 5. After posting, mark links as published:
    ```
-   POST https://scenius-digest-bot.fly.dev/api/mark-published
+   POST https://scenius-digest.vercel.app/api/mark-published
    {"ids": [1, 2, 3]}
    ```
 

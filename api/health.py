@@ -1,0 +1,19 @@
+import json
+from http.server import BaseHTTPRequestHandler
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from lib import config
+
+
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps({
+            "status": "healthy",
+            "groups": len(config.MONITORED_GROUPS),
+        }).encode())

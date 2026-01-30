@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/mark-published", "destination": "/api/mark_published" }
+  ]
+}

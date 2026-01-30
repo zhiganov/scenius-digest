@@ -30,8 +30,8 @@ Monitors community conversations and curates the best links shared each week.
         │                               │
         ▼                               ▼
 ┌───────────────┐              ┌──────────────────┐
-│ Fireflies.ai  │              │ @sensemaking_bot │
-│ (transcripts) │              │    (Fly.io)      │
+│ Fireflies.ai  │              │ Vercel Webhook   │
+│ (transcripts) │              │ + Supabase       │
 └───────┬───────┘              └────────┬─────────┘
         │                               │
         └───────────┬───────────────────┘
@@ -55,21 +55,36 @@ Uses Claude Code with Fireflies MCP:
 - Posts via Telegram Bot API
 - See [CLAUDE.md](CLAUDE.md) for digest format guidelines
 
-### Links Monitor Bot
-Self-hosted Python bot - see [bot/README.md](bot/README.md) for:
-- Multi-group configuration
-- Local development setup
-- Fly.io deployment instructions
+### Links Monitor
+Serverless Python functions on Vercel with Supabase storage.
+
+```bash
+# Deploy
+vercel --prod
+
+# Set environment variables
+vercel env add BOT_TOKEN
+vercel env add WEBHOOK_SECRET
+vercel env add SUPABASE_URL
+vercel env add SUPABASE_SERVICE_KEY
+
+# Register Telegram webhook
+curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://scenius-digest.vercel.app/api/webhook","secret_token":"...","allowed_updates":["message"]}'
+```
 
 ## Bot API
 
-Deployed at `https://scenius-digest-bot.fly.dev`:
+Deployed at `https://scenius-digest.vercel.app`:
 
 | Endpoint | Description |
 |----------|-------------|
 | `GET /api/links` | All unpublished links |
 | `GET /api/links?group=cibc` | Links from specific group |
 | `GET /api/groups` | List configured groups |
+| `POST /api/mark-published` | Mark as published: `{"ids": [1,2,3]}` |
+| `GET /api/health` | Health check |
 
 ## Claude Code Commands
 
@@ -96,7 +111,7 @@ Then type `/digest-links scenius` or `/digest-meeting`.
 
 To use these commands, you need Claude Code configured with:
 - **Fireflies MCP** - for accessing meeting transcripts (meeting digests only)
-- **Bot token** - for posting to Telegram (stored as Fly.io secret)
+- **Bot token** - for posting to Telegram (stored as Vercel env var)
 
 Contact [@zhiganov](https://t.me/zhiganov) if you want to help with digest generation.
 
@@ -104,8 +119,9 @@ Contact [@zhiganov](https://t.me/zhiganov) if you want to help with digest gener
 
 1. Add bot to the Telegram group as admin
 2. Run `/debug` in topics to get IDs
-3. Edit `bot/groups.json` with the new group config
-4. Run `fly deploy` from `bot/` directory
+3. Edit `groups.json` with the new group config
+4. Deploy: `vercel --prod`
+5. No webhook re-registration needed (same endpoint)
 
 ## Contributing
 

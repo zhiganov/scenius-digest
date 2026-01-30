@@ -17,25 +17,33 @@ Two types of content:
 ## Architecture
 
 ```
-Telegram Groups ──► Bot (Fly.io) ──► Claude Code ──► Output Channels
-                                          │
-Zoom Meetings ──► Fireflies.ai ───────────┘
+Telegram Groups ──► Webhook (Vercel) ──► Supabase ──► Claude Code ──► Output Channels
+                                                           │
+Zoom Meetings ──► Fireflies.ai ────────────────────────────┘
 ```
 
-**Bot components** (`bot/`):
-- `bot.py` - Main entry: Telegram handlers + aiohttp API server
-- `database.py` - SQLite storage with `links` table (includes group_id, group_name)
-- `config.py` - Loads groups from `groups.json`
-- `groups.json` - Multi-group configuration
-- `digest.py` - Digest formatting (supports any topic names)
+**Serverless functions** (`api/`):
+- `api/webhook.py` - Telegram webhook handler (receives messages, stores links)
+- `api/links.py` - GET unpublished links for digest generation
+- `api/groups.py` - GET configured groups
+- `api/mark_published.py` - POST mark links as published
+- `api/health.py` - GET health check
+
+**Shared modules** (`lib/`):
+- `lib/config.py` - Env vars + groups.json loading
+- `lib/database.py` - Supabase client (`digest_links` table)
+- `lib/digest.py` - Digest formatting
+- `lib/telegram.py` - Telegram Bot API helper (sendMessage via urllib)
 
 **Slash commands** (`.claude/commands/`):
 - `digest-links.md` - Weekly links roundup workflow (supports group argument)
 - `digest-meeting.md` - Meeting digest workflow
 
+**Legacy** (`bot/`): Original Fly.io bot (python-telegram-bot + SQLite + aiohttp). Kept for reference only — not deployed.
+
 ## Multi-Group Configuration
 
-Groups are defined in `bot/groups.json`:
+Groups are defined in `groups.json` (project root):
 
 ```json
 {
@@ -54,24 +62,40 @@ Groups are defined in `bot/groups.json`:
 }
 ```
 
-## Development Commands
+## Development
 
 ```bash
-# Bot development
-cd bot
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env  # then fill in values
-python bot.py
 
-# Deploy to Fly.io
-fly deploy
-fly logs              # check logs
-fly secrets list      # view configured secrets
+# Set environment variables (see .env.example)
+cp .env.example .env
+
+# Deploy to Vercel
+vercel --prod
+
+# Set env vars in Vercel
+vercel env add BOT_TOKEN
+vercel env add WEBHOOK_SECRET
+vercel env add SUPABASE_URL
+vercel env add SUPABASE_SERVICE_KEY
+```
+
+### Webhook Registration
+
+```bash
+# Delete old polling connection
+curl "https://api.telegram.org/bot${BOT_TOKEN}/deleteWebhook"
+
+# Register webhook
+curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://scenius-digest.vercel.app/api/webhook","secret_token":"YOUR_SECRET","allowed_updates":["message"]}'
 ```
 
 ## Bot API
 
-Deployed at `https://scenius-digest-bot.fly.dev`:
+Deployed at `https://scenius-digest.vercel.app`:
 
 | Endpoint | Description |
 |----------|-------------|
@@ -80,11 +104,13 @@ Deployed at `https://scenius-digest-bot.fly.dev`:
 | `GET /api/links?days=14` | Links from last N days |
 | `GET /api/groups` | List configured groups |
 | `POST /api/mark-published` | Mark as published: `{"ids": [1,2,3]}` |
-| `GET /health` | Health check |
+| `GET /api/health` | Health check |
 
 Response includes `group_id`, `group_name`, and `message_text` fields.
 
 ## Bot Commands
+
+Send these in a monitored Telegram group:
 
 | Command | Description |
 |---------|-------------|
@@ -92,6 +118,27 @@ Response includes `group_id`, `group_name`, and `message_text` fields.
 | `/groups` | List all configured groups |
 | `/stats [group]` | Show link statistics |
 | `/digest [group]` | Post digest for group |
+
+## Database
+
+Uses `digest_links` table in the scenius-digest Supabase project. Schema:
+
+```sql
+CREATE TABLE digest_links (
+  id BIGSERIAL PRIMARY KEY,
+  url TEXT NOT NULL,
+  title TEXT,
+  description TEXT,
+  group_id TEXT,
+  group_name TEXT,
+  topic TEXT NOT NULL,
+  shared_by TEXT,
+  shared_at TIMESTAMPTZ DEFAULT NOW(),
+  message_id BIGINT,
+  message_text TEXT,
+  published BOOLEAN DEFAULT FALSE
+);
+```
 
 ## MCP Integrations
 
@@ -108,7 +155,7 @@ curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
   -d '{"chat_id": "{output_channel}", "text": "...", "disable_web_page_preview": true}'
 ```
 
-BOT_TOKEN is stored as a Fly.io secret.
+BOT_TOKEN is stored as a Vercel environment variable.
 
 ---
 
@@ -130,7 +177,7 @@ Format:
 
 ### Weekly Links Roundup
 
-Source: `GET https://scenius-digest-bot.fly.dev/api/links?group={group}`
+Source: `GET https://scenius-digest.vercel.app/api/links?group={group}`
 
 Workflow:
 1. Fetch links from API (with group filter)

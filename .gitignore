@@ -17,3 +17,5 @@ venv/
 .idea/
 .vscode/
 *.swp
+
+.vercel
