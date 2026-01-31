@@ -19,3 +19,4 @@ venv/
 *.swp
 
 .vercel
+.env*.local

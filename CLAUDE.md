@@ -189,7 +189,7 @@ Workflow:
 Format:
 ```
 🔗 {Group Name} Links Digest
-🗓 Week of [Date]
+🗓 Week of [Monday date of current week]
 
 [Opening sentence about what the community explored this week.]
 
@@ -204,9 +204,13 @@ Format:
 [Brief fun intro]
 
 • [URL]
-
-[Closing line inviting people to join]
 ```
+
+### Important Notes
+
+- **No closing CTA**: Do NOT add a closing line inviting people to contribute or join. The output channels are public-facing and read by non-members who can't post to the source group.
+- **Week starts on Monday**: The "Week of" date should always be the Monday of the current week.
+- **Aware of prior posts**: The API returns only unpublished links, but other links may have already been posted to the channel earlier in the week. Don't comment on volume (e.g., "just one link this week") since there may have been earlier digest posts in the same week.
 
 ### Writing Style
 
