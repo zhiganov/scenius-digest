@@ -17,7 +17,8 @@ def get_client():
 
 def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
              description: str = None, message_id: int = None, message_text: str = None,
-             group_id: str = None, group_name: str = None) -> bool:
+             group_id: str = None, group_name: str = None,
+             og_title: str = None, og_description: str = None, og_image: str = None) -> bool:
     """Add a new link. Returns False if duplicate (same URL in same group within 7 days)."""
     client = get_client()
     since = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
@@ -31,7 +32,7 @@ def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
     if result.data:
         return False
 
-    client.table("digest_links").insert({
+    row = {
         "url": url,
         "title": title,
         "description": description,
@@ -41,7 +42,15 @@ def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
         "shared_by": shared_by,
         "message_id": message_id,
         "message_text": message_text,
-    }).execute()
+    }
+    if og_title:
+        row["og_title"] = og_title
+    if og_description:
+        row["og_description"] = og_description
+    if og_image:
+        row["og_image"] = og_image
+
+    client.table("digest_links").insert(row).execute()
 
     return True
 

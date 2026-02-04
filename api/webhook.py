@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from lib import config
 from lib.database import add_link, get_stats
 from lib.telegram import send_message
+from lib.opengraph import fetch_og
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,7 @@ class handler(BaseHTTPRequestHandler):
         group_name = group_config.get("name", group_key)
 
         for url in urls:
+            og = fetch_og(url)
             added = add_link(
                 url=url,
                 topic=topic_name,
@@ -92,6 +94,9 @@ class handler(BaseHTTPRequestHandler):
                 message_text=text,
                 group_id=group_id,
                 group_name=group_name,
+                og_title=og.get("og_title"),
+                og_description=og.get("og_description"),
+                og_image=og.get("og_image"),
             )
             if added:
                 logger.info(f"[{group_name}] Stored link from {shared_by} in {topic_name}: {url}")
