@@ -23,7 +23,7 @@ Zoom Meetings ──► Fireflies.ai ──────────────�
 ```
 
 **Serverless functions** (`api/`):
-- `api/webhook.py` - Telegram webhook handler (receives messages, stores links)
+- `api/webhook.py` - Telegram webhook handler (receives messages, fetches OG metadata, stores links)
 - `api/links.py` - GET unpublished links for digest generation
 - `api/groups.py` - GET configured groups
 - `api/mark_published.py` - POST mark links as published
@@ -34,6 +34,7 @@ Zoom Meetings ──► Fireflies.ai ──────────────�
 - `lib/database.py` - Supabase client (`digest_links` table)
 - `lib/digest.py` - Digest formatting
 - `lib/telegram.py` - Telegram Bot API helper (sendMessage via urllib)
+- `lib/opengraph.py` - Open Graph metadata fetcher (stdlib only, 5s timeout, 32KB read limit)
 
 **Slash commands** (`.claude/commands/`):
 - `digest-links.md` - Weekly links roundup workflow (supports group argument)
@@ -106,7 +107,7 @@ Deployed at `https://scenius-digest.vercel.app`:
 | `POST /api/mark-published` | Mark as published: `{"ids": [1,2,3]}` |
 | `GET /api/health` | Health check |
 
-Response includes `group_id`, `group_name`, and `message_text` fields.
+Response includes `group_id`, `group_name`, `message_text`, and OG metadata fields (`og_title`, `og_description`, `og_image`) when available.
 
 ## Bot Commands
 
@@ -136,9 +137,14 @@ CREATE TABLE digest_links (
   shared_at TIMESTAMPTZ DEFAULT NOW(),
   message_id BIGINT,
   message_text TEXT,
-  published BOOLEAN DEFAULT FALSE
+  published BOOLEAN DEFAULT FALSE,
+  og_title TEXT,
+  og_description TEXT,
+  og_image TEXT
 );
 ```
+
+OG metadata (`og_title`, `og_description`, `og_image`) is fetched automatically when the webhook stores a new link. Uses stdlib `urllib` with a 5-second timeout and reads only the first 32KB of HTML. Falls back to `<title>` and `<meta name="description">` when OG tags are absent. Consumers should prefer `og_title` over `title` and `og_description` over `description` when available.
 
 ## MCP Integrations
 
