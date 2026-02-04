@@ -4,29 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Multi-community digest bot that collects links from Telegram groups and publishes curated digests to their respective channels.
+Multi-community digest system that collects links from Telegram groups and serves them via two channels: curated Telegram digests (via Claude Code) and a REST API consumed by [My Community](https://github.com/Citizen-Infra/my-community) Chrome extension.
 
 **Supported communities:**
 - **Sensemaking Scenius** → @scenius channel
 - **Citizen Infra Builders** → [@citizen_infra](https://t.me/citizen_infra) channel
 
-Two types of content:
-1. **Meeting digests** - Narrative summaries of Zoom calls (transcripts via Fireflies.ai)
-2. **Weekly links roundup** - Curated links from community Telegram topics (from bot API)
+Three outputs:
+1. **Meeting digests** — Narrative summaries of Zoom calls (transcripts via Fireflies.ai) → Telegram
+2. **Weekly links roundup** — Curated links from community Telegram topics → Telegram
+3. **REST API** — Links with OG metadata served to My Community extension (`GET /api/links`, `/api/groups`)
 
 ## Architecture
 
 ```
-Telegram Groups ──► Webhook (Vercel) ──► Supabase ──► Claude Code ──► Output Channels
-                                                           │
-Zoom Meetings ──► Fireflies.ai ────────────────────────────┘
+Zoom Meetings ──► Fireflies.ai ──┐
+                                 ├──► Claude Code ──► Telegram Channels
+Telegram Groups ──► Webhook ──► Supabase
+                   (+ OG)        └──► REST API ──► My Community (extension)
 ```
 
 **Serverless functions** (`api/`):
 - `api/webhook.py` - Telegram webhook handler (receives messages, fetches OG metadata, stores links)
-- `api/links.py` - GET unpublished links for digest generation
-- `api/groups.py` - GET configured groups
+- `api/links.py` - GET links (used by Claude Code for digests and My Community for the digest feed)
+- `api/groups.py` - GET configured groups (used by My Community for community selection)
 - `api/mark_published.py` - POST mark links as published
+- `api/backfill_og.py` - POST backfill OG metadata for existing links missing it
 - `api/health.py` - GET health check
 
 **Shared modules** (`lib/`):
@@ -94,9 +97,9 @@ curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
   -d '{"url":"https://scenius-digest.vercel.app/api/webhook","secret_token":"YOUR_SECRET","allowed_updates":["message"]}'
 ```
 
-## Bot API
+## API
 
-Deployed at `https://scenius-digest.vercel.app`:
+Deployed at `https://scenius-digest.vercel.app`. Consumed by Claude Code (digest generation) and My Community extension (digest feed).
 
 | Endpoint | Description |
 |----------|-------------|
