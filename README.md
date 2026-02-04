@@ -1,6 +1,6 @@
 # Community Digest Bot
 
-Curated highlights from multiple communities, automatically published to their respective Telegram channels. Also powers the Community Digest feed in [My Community](https://github.com/Citizen-Infra/my-community) Chrome extension via the Bot API.
+Curated highlights from multiple communities, automatically published to their respective Telegram channels. Also powers the Community Digest feed in [My Community](https://github.com/Citizen-Infra/my-community) Chrome extension via the REST API.
 
 ## Supported Communities
 
@@ -24,28 +24,28 @@ Monitors community conversations and curates the best links shared each week.
 ## Architecture
 
 ```
-┌───────────────┐              ┌──────────────────┐
-│ Zoom Meetings │              │ Telegram Groups  │
-└───────┬───────┘              └────────┬─────────┘
-        │                               │
-        ▼                               ▼
-┌───────────────┐              ┌──────────────────┐
-│ Fireflies.ai  │              │ Vercel Webhook   │
-│ (transcripts) │              │ + OG metadata    │
-└───────┬───────┘              │ + Supabase       │
-        │                      └────────┬─────────┘
-        │                               │
-        └───────────┬───────────┬───────┘
-                    ▼           ▼
-           ┌─────────────┐  ┌──────────────┐
-           │ Claude Code │  │   Bot API    │
-           └──────┬──────┘  │ GET /api/... │
-                  │         └──────┬───────┘
-                  ▼                ▼
-           ┌─────────────┐  ┌──────────────┐
-           │  Telegram   │  │ My Community │
-           │  Channels   │  │ (extension)  │
-           └─────────────┘  └──────────────┘
+┌───────────────┐   ┌──────────────────┐
+│ Zoom Meetings │   │ Telegram Groups  │
+└───────┬───────┘   └────────┬─────────┘
+        │                    │
+        ▼                    ▼
+┌───────────────┐   ┌──────────────────┐        ┌──────────────┐
+│ Fireflies.ai  │   │ Vercel Webhook   │        │   REST API   │
+│ (transcripts) │   │ + OG metadata    ├───────►│ GET /api/... │
+└───────┬───────┘   │ + Supabase       │        └──────┬───────┘
+        │           └────────┬─────────┘               │
+        │                    │                         ▼
+        └────────┬───────────┘                  ┌──────────────┐
+                 ▼                              │ My Community │
+        ┌─────────────┐                         │ (extension)  │
+        │ Claude Code │                         └──────────────┘
+        └──────┬──────┘
+               │
+               ▼
+        ┌─────────────┐
+        │  Telegram   │
+        │  Channels   │
+        └─────────────┘
 ```
 
 ## Setup
@@ -75,7 +75,7 @@ curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
   -d '{"url":"https://scenius-digest.vercel.app/api/webhook","secret_token":"...","allowed_updates":["message"]}'
 ```
 
-## Bot API
+## API
 
 Deployed at `https://scenius-digest.vercel.app`. Used by Claude Code for digest generation and by [My Community](https://github.com/Citizen-Infra/my-community) for the Community Digest feed (links with OG metadata).
 
