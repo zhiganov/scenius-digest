@@ -33,22 +33,19 @@ Monitors community conversations and curates the best links shared each week.
 │ Fireflies.ai  │              │ Vercel Webhook   │
 │ (transcripts) │              │ + OG metadata    │
 └───────┬───────┘              │ + Supabase       │
-        │                      └────────┬─────────┘
-        │                               │
-        └───────────┬───────────────────┘
-                    │
-              ┌─────┴─────┐
-              ▼           ▼
-     ┌─────────────┐  ┌──────────────┐
-     │ Claude Code │  │ Bot API      │
-     │ (digests)   │  │ GET /api/... │
-     └──────┬──────┘  └──────┬───────┘
-            │                │
-            ▼                ▼
-     ┌─────────────┐  ┌──────────────┐
-     │ Telegram    │  │ My Community │
-     │ Channels    │  │ (extension)  │
-     └─────────────┘  └──────────────┘
+        │                      └───┬──────────┬───┘
+        │                          │          │
+        ▼                          │          ▼
+┌───────────────┐                  │   ┌──────────────┐
+│  Claude Code  │                  │   │ Bot API      │
+│  (digests)    │                  │   │ GET /api/... │
+└───────┬───────┘                  │   └──────┬───────┘
+        │                          │          │
+        ▼                          ▼          ▼
+┌───────────────┐              ┌──────────────────┐
+│   Telegram    │              │  My Community    │
+│   Channels    │              │  (extension)     │
+└───────────────┘              └──────────────────┘
 ```
 
 ## Setup
