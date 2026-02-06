@@ -81,7 +81,8 @@ Deployed at `https://scenius-digest.vercel.app`. Used by Claude Code for digest 
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /api/links` | All unpublished links |
+| `GET /api/links` | Unpublished links (for digest generation) |
+| `GET /api/links?all=true` | All links including published (for My Community) |
 | `GET /api/links?group=cibc` | Links from specific group |
 | `GET /api/groups` | List configured groups |
 | `POST /api/mark-published` | Mark as published: `{"ids": [1,2,3]}` |

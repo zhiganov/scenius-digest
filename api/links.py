@@ -15,6 +15,7 @@ class handler(BaseHTTPRequestHandler):
         query = parse_qs(urlparse(self.path).query)
         days = int(query.get("days", ["7"])[0])
         group = query.get("group", [None])[0]
+        include_all = query.get("all", [""])[0].lower() in ("true", "1")
 
         # Resolve group key to group_id
         group_id = None
@@ -24,7 +25,7 @@ class handler(BaseHTTPRequestHandler):
             else:
                 group_id = group
 
-        links = get_unpublished_links(since_days=days, group_id=group_id)
+        links = get_unpublished_links(since_days=days, group_id=group_id, include_published=include_all)
 
         response = {
             "links": links,
