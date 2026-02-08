@@ -1,6 +1,6 @@
 # Community Digest Bot
 
-Curated highlights from multiple communities, automatically published to their respective Telegram channels. Also powers the Community Digest feed in [My Community](https://github.com/Citizen-Infra/my-community) Chrome extension via the REST API.
+Curated highlights from multiple communities, automatically published to their respective Telegram channels. Also powers the Community Digest feed and Participation (events) in [My Community](https://github.com/Citizen-Infra/my-community) and [Dear Neighbors](https://github.com/Citizen-Infra/dear-neighbors) Chrome extensions via the REST API.
 
 ## Supported Communities
 
@@ -8,6 +8,7 @@ Curated highlights from multiple communities, automatically published to their r
 |-----------|----------------|
 | Sensemaking Scenius | [@scenius](https://t.me/scenius) |
 | Citizen Infra Builders | [@citizen_infra](https://t.me/citizen_infra) |
+| Novi Sad Relational Tech | [@nsrt_news](https://t.me/nsrt_news) |
 
 ## What It Does
 
@@ -21,24 +22,31 @@ Monitors community conversations and curates the best links shared each week.
 - Source: Telegram group topics (Links, Memes, News, Resources, etc.)
 - Trigger: Manual via `/digest-links [group]` command in Claude Code
 
+### 3. Events Aggregation
+Unified events feed from multiple sources, consumed by MC and DN extensions.
+- Source A: Telegram event links (enriched with date/location from Luma API, Meetup/Eventbrite ld+json)
+- Source B: External event APIs (Luma calendar polling)
+- Served via `GET /api/events` with community and city filters
+
 ## Architecture
 
 ```
-┌───────────────┐   ┌──────────────────┐
-│ Zoom Meetings │   │ Telegram Groups  │
-└───────┬───────┘   └────────┬─────────┘
-        │                    │
-        ▼                    ▼
-┌───────────────┐   ┌──────────────────┐        ┌──────────────┐
+┌───────────────┐   ┌──────────────────┐        ┌───────────────┐   ┌───────────────┐
+│ Zoom Meetings │   │ Telegram Groups  │        │ External APIs │   │ Admin Panel   │
+└───────┬───────┘   └────────┬─────────┘        │ (Luma, etc.)  │   │   (planned)   │
+        │                    │                  └───────┬───────┘   └───────────────┘
+        ▼                    ▼                          │
+┌───────────────┐   ┌──────────────────┐        ┌──────┴───────┐
 │ Fireflies.ai  │   │ Vercel Webhook   │        │   REST API   │
 │ (transcripts) │   │ + OG metadata    ├───────►│ GET /api/... │
-└───────┬───────┘   │ + Supabase       │        └──────┬───────┘
-        │           └────────┬─────────┘               │
-        │                    │                         ▼
-        └────────┬───────────┘                  ┌──────────────┐
-                 ▼                              │ My Community │
-        ┌─────────────┐                         │ (extension)  │
-        │ Claude Code │                         └──────────────┘
+└───────┬───────┘   │ + event enrich   │        └──────┬───────┘
+        │           │ + Supabase       │               │
+        │           └────────┬─────────┘               ▼
+        │                    │          ┌──────────────────────────────────┐
+        └────────┬───────────┘          │ Chrome Extensions:               │
+                 ▼                      │ Dear Neighbors · My Community    │
+        ┌─────────────┐                 └──────────────────────────────────┘
+        │ Claude Code │
         └──────┬──────┘
                │
                ▼
@@ -77,14 +85,17 @@ curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
 
 ## API
 
-Deployed at `https://scenius-digest.vercel.app`. Used by Claude Code for digest generation and by [My Community](https://github.com/Citizen-Infra/my-community) for the Community Digest feed (links with OG metadata).
+Deployed at `https://scenius-digest.vercel.app`. Used by Claude Code for digest generation, by [My Community](https://github.com/Citizen-Infra/my-community) for the digest feed + events, and by [Dear Neighbors](https://github.com/Citizen-Infra/dear-neighbors) for events.
 
 | Endpoint | Description |
 |----------|-------------|
 | `GET /api/links` | Unpublished links (for digest generation) |
 | `GET /api/links?all=true` | All links including published (for My Community) |
 | `GET /api/links?group=cibc` | Links from specific group |
-| `GET /api/groups` | List configured groups |
+| `GET /api/events` | All upcoming events across communities |
+| `GET /api/events?community=nsrt` | Events for a specific community |
+| `GET /api/events?city=novi-sad` | Events by city (used by Dear Neighbors) |
+| `GET /api/groups` | List configured groups with event metadata |
 | `POST /api/mark-published` | Mark as published: `{"ids": [1,2,3]}` |
 | `GET /api/health` | Health check |
 

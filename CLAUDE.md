@@ -9,11 +9,13 @@ Multi-community digest system that collects links from Telegram groups and serve
 **Supported communities:**
 - **Sensemaking Scenius** → @scenius channel
 - **Citizen Infra Builders** → [@citizen_infra](https://t.me/citizen_infra) channel
+- **Novi Sad Relational Tech (NSRT)** → [@nsrt_news](https://t.me/nsrt_news) channel
 
-Three outputs:
+Four outputs:
 1. **Meeting digests** — Narrative summaries of Zoom calls (transcripts via Fireflies.ai) → Telegram
 2. **Weekly links roundup** — Curated links from community Telegram topics → Telegram
-3. **REST API** — Links with OG metadata served to My Community extension (`GET /api/links`, `/api/groups`)
+3. **REST API — Links** — Links with OG metadata served to My Community extension (`GET /api/links`, `/api/groups`)
+4. **REST API — Events** — Unified events feed aggregating Telegram event links + external APIs (Luma), served to My Community and Dear Neighbors extensions (`GET /api/events`)
 
 ## Architecture
 
@@ -21,23 +23,28 @@ Three outputs:
 Zoom Meetings ──► Fireflies.ai ──┐
                                  ├──► Claude Code ──► Telegram Channels
 Telegram Groups ──► Webhook ──► Supabase
-                   (+ OG)        └──► REST API ──► My Community (extension)
+                   (+ OG/events)    ├──► /api/links ──► My Community (digest feed)
+                                    ├──► /api/events ──► MC + DN (participation)
+External APIs ──────────────────────┘    (Luma, etc.)
 ```
 
 **Serverless functions** (`api/`):
-- `api/webhook.py` - Telegram webhook handler (receives messages, fetches OG metadata, stores links)
+- `api/webhook.py` - Telegram webhook handler (receives messages, fetches OG metadata, enriches events, stores links)
 - `api/links.py` - GET links (used by Claude Code for digests and My Community for the digest feed)
-- `api/groups.py` - GET configured groups (used by My Community for community selection)
+- `api/events.py` - GET unified events feed (aggregates Telegram event links + external APIs like Luma). Filters: `?community=nsrt`, `?city=novi-sad`
+- `api/groups.py` - GET configured groups with city/event metadata (used by MC for community selection)
 - `api/mark_published.py` - POST mark links as published
 - `api/backfill_og.py` - POST backfill OG metadata for existing links missing it
 - `api/health.py` - GET health check
 
 **Shared modules** (`lib/`):
-- `lib/config.py` - Env vars + groups.json loading
-- `lib/database.py` - Supabase client (`digest_links` table)
+- `lib/config.py` - Env vars + groups.json loading + helpers (`is_event_topic()`, `get_groups_by_city()`)
+- `lib/database.py` - Supabase client (`digest_links` table, `add_link()`, `get_event_links()`)
 - `lib/digest.py` - Digest formatting
 - `lib/telegram.py` - Telegram Bot API helper (sendMessage via urllib)
 - `lib/opengraph.py` - Open Graph metadata fetcher (stdlib only, 5s timeout, 32KB read limit)
+- `lib/event_enrichment.py` - Event platform detection (Luma/Meetup/Eventbrite) + structured data extraction
+- `lib/luma.py` - Luma calendar API fetcher (future events from a calendar URL)
 
 **Slash commands** (`.claude/commands/`):
 - `digest-links.md` - Weekly links roundup workflow (supports group argument)
@@ -55,16 +62,27 @@ Groups are defined in `groups.json` (project root):
     "name": "Sensemaking Scenius",
     "group_id": "-1002141367711",
     "output_channel": "-1002708526104",
-    "topics": { "links": "230", "memes": "4605" }
+    "city": null,
+    "topics": { "links": "230", "memes": "4605", "events": "2156" },
+    "event_topics": ["events"],
+    "event_apis": []
   },
-  "cibc": {
-    "name": "Citizen Infra Builders",
-    "group_id": "-1003188266615",
-    "output_channel": "-1001800461815",
-    "topics": { "news": "11", "resources": "266" }
+  "nsrt": {
+    "name": "Novi Sad Relational Tech",
+    "group_id": "-1003669626939",
+    "output_channel": "-1003857482838",
+    "city": "novi-sad",
+    "topics": { "links": "16", "events": "8" },
+    "event_topics": ["events"],
+    "event_apis": [{ "type": "luma", "url": "https://lu.ma/nsrt" }]
   }
 }
 ```
+
+Each group can have:
+- `city` — slug for `/api/events?city=` filtering (used by Dear Neighbors)
+- `event_topics` — Telegram topics where links are treated as events (enriched with date/location)
+- `event_apis` — external event sources polled by `/api/events` (currently Luma calendars)
 
 ## Development
 
@@ -106,11 +124,17 @@ Deployed at `https://scenius-digest.vercel.app`. Consumed by Claude Code (digest
 | `GET /api/links` | All unpublished links |
 | `GET /api/links?group=cibc` | Links from specific group |
 | `GET /api/links?days=14` | Links from last N days |
-| `GET /api/groups` | List configured groups |
+| `GET /api/links?all=true` | All links including published (for MC digest feed) |
+| `GET /api/events` | All upcoming events across communities |
+| `GET /api/events?community=nsrt` | Events for a specific community |
+| `GET /api/events?city=novi-sad` | Events for communities in a city (used by DN) |
+| `GET /api/groups` | List configured groups with city/event metadata |
 | `POST /api/mark-published` | Mark as published: `{"ids": [1,2,3]}` |
 | `GET /api/health` | Health check |
 
-Response includes `group_id`, `group_name`, `message_text`, and OG metadata fields (`og_title`, `og_description`, `og_image`) when available.
+Links response includes `group_id`, `group_name`, `message_text`, and OG metadata fields (`og_title`, `og_description`, `og_image`) when available.
+
+Events response includes `id`, `title`, `description`, `image`, `url`, `starts_at`, `ends_at`, `location`, `source` (telegram/luma), and `community`.
 
 ## Bot Commands
 
@@ -143,11 +167,16 @@ CREATE TABLE digest_links (
   published BOOLEAN DEFAULT FALSE,
   og_title TEXT,
   og_description TEXT,
-  og_image TEXT
+  og_image TEXT,
+  type TEXT DEFAULT 'link',          -- 'link' or 'event'
+  event_starts_at TIMESTAMPTZ,       -- event start time (enriched)
+  event_location TEXT                 -- event location (enriched)
 );
 ```
 
 OG metadata (`og_title`, `og_description`, `og_image`) is fetched automatically when the webhook stores a new link. Uses stdlib `urllib` with a 5-second timeout and reads only the first 32KB of HTML. Falls back to `<title>` and `<meta name="description">` when OG tags are absent. Consumers should prefer `og_title` over `title` and `og_description` over `description` when available.
+
+**Event enrichment:** Links shared in `event_topics` are stored with `type='event'`. The webhook calls `enrich_event()` which extracts structured data (start time, location) from known platforms — Luma via public API, Meetup/Eventbrite via ld+json parsing.
 
 ## MCP Integrations
 
@@ -241,5 +270,6 @@ Format:
 
 | Group | Key | Group ID | Output Channel | Topics |
 |-------|-----|----------|----------------|--------|
-| Sensemaking Scenius | scenius | -1002141367711 | -1002708526104 (@scenius) | links, memes |
-| Citizen Infra Builders | cibc | -1003188266615 | -1001800461815 (@citizen_infra) | news, resources |
+| Sensemaking Scenius | scenius | -1002141367711 | -1002708526104 (@scenius) | links, memes, events |
+| Citizen Infra Builders | cibc | -1003188266615 | -1001800461815 (@citizen_infra) | news, resources, events |
+| Novi Sad Relational Tech | nsrt | -1003669626939 | -1003857482838 | links, events |
