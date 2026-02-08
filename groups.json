@@ -3,18 +3,38 @@
     "name": "Sensemaking Scenius",
     "group_id": "-1002141367711",
     "output_channel": "-1002708526104",
+    "city": null,
     "topics": {
       "links": "230",
       "memes": "4605"
-    }
+    },
+    "event_topics": [],
+    "event_apis": []
   },
   "cibc": {
     "name": "Citizen Infra Builders",
     "group_id": "-1003188266615",
     "output_channel": "-1001800461815",
+    "city": null,
     "topics": {
       "news": "11",
       "resources": "266"
-    }
+    },
+    "event_topics": [],
+    "event_apis": []
+  },
+  "nsrt": {
+    "name": "Novi Sad Relational Tech",
+    "group_id": "-1003669626939",
+    "output_channel": "-1003857482838",
+    "city": "novi-sad",
+    "topics": {
+      "links": "16",
+      "events": "8"
+    },
+    "event_topics": ["events"],
+    "event_apis": [
+      { "type": "luma", "url": "https://lu.ma/nsrt" }
+    ]
   }
 }

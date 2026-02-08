@@ -18,7 +18,8 @@ def get_client():
 def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
              description: str = None, message_id: int = None, message_text: str = None,
              group_id: str = None, group_name: str = None,
-             og_title: str = None, og_description: str = None, og_image: str = None) -> bool:
+             og_title: str = None, og_description: str = None, og_image: str = None,
+             link_type: str = None, event_starts_at: str = None, event_location: str = None) -> bool:
     """Add a new link. Returns False if duplicate (same URL in same group within 7 days)."""
     client = get_client()
     since = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
@@ -49,6 +50,12 @@ def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
         row["og_description"] = og_description
     if og_image:
         row["og_image"] = og_image
+    if link_type:
+        row["type"] = link_type
+    if event_starts_at:
+        row["event_starts_at"] = event_starts_at
+    if event_location:
+        row["event_location"] = event_location
 
     client.table("digest_links").insert(row).execute()
 
@@ -123,3 +130,23 @@ def get_stats(group_id: str = None) -> dict:
     unpublished = unpub_q.execute().count or 0
 
     return {"total": total, "unpublished": unpublished, "published": total - unpublished}
+
+
+def get_event_links(group_ids: list[str] = None, since_days: int = 30) -> list[dict]:
+    """Get event-type links, ordered by event_starts_at ascending (nulls last)."""
+    client = get_client()
+    since = (datetime.now(timezone.utc) - timedelta(days=since_days)).isoformat()
+
+    query = (
+        client.table("digest_links")
+        .select("*")
+        .eq("type", "event")
+        .gte("shared_at", since)
+        .order("event_starts_at", desc=False)
+    )
+
+    if group_ids:
+        query = query.in_("group_id", group_ids)
+
+    result = query.execute()
+    return result.data

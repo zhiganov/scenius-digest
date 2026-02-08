@@ -17,6 +17,9 @@ class handler(BaseHTTPRequestHandler):
                 "group_id": cfg.get("group_id"),
                 "output_channel": cfg.get("output_channel"),
                 "topics": list(cfg.get("topics", {}).keys()),
+                "city": cfg.get("city"),
+                "event_topics": cfg.get("event_topics", []),
+                "event_apis": cfg.get("event_apis", []),
             }
 
         self.send_response(200)

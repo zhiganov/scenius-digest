@@ -55,3 +55,19 @@ def get_topic_name(group_key: str, thread_id) -> str | None:
 def get_all_group_ids() -> list[str]:
     """Get list of all monitored group IDs."""
     return [str(g.get("group_id")) for g in MONITORED_GROUPS.values()]
+
+
+def is_event_topic(group_key: str, topic_name: str) -> bool:
+    """Check if a topic is in the group's event_topics list."""
+    if group_key not in MONITORED_GROUPS:
+        return False
+    event_topics = MONITORED_GROUPS[group_key].get("event_topics", [])
+    return topic_name in event_topics
+
+
+def get_groups_by_city(city: str) -> dict:
+    """Return all groups matching a city slug."""
+    return {
+        key: cfg for key, cfg in MONITORED_GROUPS.items()
+        if cfg.get("city") == city
+    }

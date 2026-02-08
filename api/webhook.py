@@ -13,6 +13,7 @@ from lib import config
 from lib.database import add_link, get_stats
 from lib.telegram import send_message
 from lib.opengraph import fetch_og
+from lib.event_enrichment import enrich_event
 
 logger = logging.getLogger(__name__)
 
@@ -83,9 +84,18 @@ class handler(BaseHTTPRequestHandler):
 
         group_id = group_config.get("group_id")
         group_name = group_config.get("name", group_key)
+        is_event = config.is_event_topic(group_key, topic_name)
 
         for url in urls:
             og = fetch_og(url)
+
+            event_data = {}
+            if is_event:
+                try:
+                    event_data = enrich_event(url)
+                except Exception as e:
+                    logger.debug(f"Event enrichment failed for {url}: {e}")
+
             added = add_link(
                 url=url,
                 topic=topic_name,
@@ -97,9 +107,12 @@ class handler(BaseHTTPRequestHandler):
                 og_title=og.get("og_title"),
                 og_description=og.get("og_description"),
                 og_image=og.get("og_image"),
+                link_type="event" if is_event else None,
+                event_starts_at=event_data.get("starts_at"),
+                event_location=event_data.get("location"),
             )
             if added:
-                logger.info(f"[{group_name}] Stored link from {shared_by} in {topic_name}: {url}")
+                logger.info(f"[{group_name}] Stored {'event' if is_event else 'link'} from {shared_by} in {topic_name}: {url}")
 
     def _handle_command(self, message: dict, text: str, chat_id: str):
         parts = text.split()
