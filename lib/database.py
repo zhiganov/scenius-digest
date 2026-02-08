@@ -70,6 +70,7 @@ def get_unpublished_links(since_days: int = 7, group_id: str = None, include_pub
     query = (
         client.table("digest_links")
         .select("*")
+        .neq("type", "event")
         .gte("shared_at", since)
         .order("topic")
         .order("shared_at", desc=True)
