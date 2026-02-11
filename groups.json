@@ -39,6 +39,17 @@
       { "type": "luma", "url": "https://lu.ma/nsrt" }
     ]
   },
+  "newspeak-house": {
+    "name": "Newspeak House",
+    "group_id": null,
+    "output_channel": null,
+    "city": "london",
+    "topics": {},
+    "event_topics": [],
+    "event_apis": [
+      { "type": "luma", "url": "https://luma.com/newspeak-house", "api_id": "cal-WGvTrmNL8OxL5Tw" }
+    ]
+  },
   "civic-tech-toronto": {
     "name": "Civic Tech Toronto",
     "group_id": null,

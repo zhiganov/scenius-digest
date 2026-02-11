@@ -10,6 +10,7 @@ Multi-community digest system that collects links from Telegram groups and serve
 - **Sensemaking Scenius** → @scenius channel
 - **Citizen Infra Builders** → [@citizen_infra](https://t.me/citizen_infra) channel
 - **Novi Sad Relational Tech (NSRT)** → [@nsrt_news](https://t.me/nsrt_news) channel
+- **Newspeak House** → events API only (Luma, London)
 - **Civic Tech Toronto** → events API only (guild.host)
 
 Four outputs:

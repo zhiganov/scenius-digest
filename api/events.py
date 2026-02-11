@@ -136,7 +136,7 @@ class handler(BaseHTTPRequestHandler):
         for key, cfg in groups.items():
             for api_cfg in cfg.get("event_apis", []):
                 if api_cfg.get("type") == "luma":
-                    api_events.extend(fetch_luma_events(api_cfg["url"], key))
+                    api_events.extend(fetch_luma_events(api_cfg["url"], key, api_cfg.get("api_id")))
                 elif api_cfg.get("type") == "guildhost":
                     api_events.extend(fetch_guildhost_events(api_cfg["url"], key))
 
