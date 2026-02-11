@@ -35,8 +35,8 @@ def _normalize_url(url: str) -> str:
     try:
         parsed = urlparse(url)
         host = parsed.netloc.lower()
-        if host in ("luma.com", "www.luma.com"):
-            host = "lu.ma"
+        if host in ("lu.ma", "www.lu.ma"):
+            host = "luma.com"
         normalized = parsed._replace(
             netloc=host,
             path=parsed.path.rstrip('/'),

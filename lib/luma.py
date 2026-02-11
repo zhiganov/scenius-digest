@@ -32,7 +32,7 @@ def fetch_luma_events(calendar_url: str, community_key: str, api_id: str | None 
         events = []
         for entry in data.get("entries", []):
             event = entry.get("event", {})
-            event_url = f"https://lu.ma/{event.get('url', calendar_api_id)}"
+            event_url = f"https://luma.com/{event.get('url', calendar_api_id)}"
 
             geo = event.get("geo_address_info") or {}
 
