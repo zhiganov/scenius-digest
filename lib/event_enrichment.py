@@ -9,7 +9,7 @@ from urllib.error import URLError
 logger = logging.getLogger(__name__)
 
 PLATFORM_PATTERNS = [
-    (re.compile(r'https?://(?:www\.)?lu\.ma/([^/?#]+)'), 'luma'),
+    (re.compile(r'https?://(?:www\.)?(?:lu\.ma|luma\.com)/([^/?#]+)'), 'luma'),
     (re.compile(r'https?://(?:www\.)?meetup\.com/.+/events/'), 'meetup'),
     (re.compile(r'https?://(?:www\.)?eventbrite\.com/e/'), 'eventbrite'),
 ]
@@ -50,7 +50,7 @@ def enrich_event(url: str, html: str = None) -> dict:
 
 def _enrich_luma(url: str) -> dict:
     """Fetch event data from Luma public API."""
-    slug = url.rstrip('/').split('/')[-1]
+    slug = url.rstrip('/').split('/')[-1].split('?')[0]
     api_url = f"https://api.lu.ma/event/get?event_api_id={slug}"
 
     req = Request(api_url, headers={
