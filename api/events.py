@@ -107,6 +107,16 @@ class handler(BaseHTTPRequestHandler):
         params = parse_qs(parsed.query)
         groups = _get_matching_groups(params)
 
+        # If a filter was requested but matched nothing, return empty
+        has_filter = params.get("community") or params.get("city")
+        if has_filter and not groups:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"events": []}).encode())
+            return
+
         # Build reverse lookup: group_id -> group_key
         group_key_by_id = {
             str(cfg.get("group_id")): key for key, cfg in groups.items()
