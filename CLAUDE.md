@@ -10,6 +10,7 @@ Multi-community digest system that collects links from Telegram groups and serve
 - **Sensemaking Scenius** → @scenius channel
 - **Citizen Infra Builders** → [@citizen_infra](https://t.me/citizen_infra) channel
 - **Novi Sad Relational Tech (NSRT)** → [@nsrt_news](https://t.me/nsrt_news) channel
+- **Civic Tech Toronto** → events API only (guild.host)
 
 Four outputs:
 1. **Meeting digests** — Narrative summaries of Zoom calls (transcripts via Fireflies.ai) → Telegram
@@ -25,7 +26,7 @@ Zoom Meetings ──► Fireflies.ai ──┐
 Telegram Groups ──► Webhook ──► Supabase
                    (+ OG/events)    ├──► /api/links ──► My Community (digest feed)
                                     ├──► /api/events ──► MC + DN (participation)
-External APIs ──────────────────────┘    (Luma, etc.)
+External APIs ──────────────────────┘    (Luma, guild.host)
 ```
 
 **Serverless functions** (`api/`):
@@ -45,6 +46,7 @@ External APIs ──────────────────────
 - `lib/opengraph.py` - Open Graph metadata fetcher (stdlib only, 5s timeout, 32KB read limit)
 - `lib/event_enrichment.py` - Event platform detection (Luma/Meetup/Eventbrite) + structured data extraction
 - `lib/luma.py` - Luma calendar API fetcher (future events from a calendar URL)
+- `lib/guildhost.py` - guild.host events fetcher (scrapes __NEXT_DATA__ from community events page)
 
 **Slash commands** (`.claude/commands/`):
 - `digest-links.md` - Weekly links roundup workflow (supports group argument)
@@ -82,7 +84,7 @@ Groups are defined in `groups.json` (project root):
 Each group can have:
 - `city` — slug for `/api/events?city=` filtering (used by Dear Neighbors)
 - `event_topics` — Telegram topics where links are treated as events (enriched with date/location)
-- `event_apis` — external event sources polled by `/api/events` (currently Luma calendars)
+- `event_apis` — external event sources polled by `/api/events` (Luma calendars, guild.host communities)
 
 ## Development
 
@@ -134,7 +136,7 @@ Deployed at `https://scenius-digest.vercel.app`. Consumed by Claude Code (digest
 
 Links response includes `group_id`, `group_name`, `message_text`, and OG metadata fields (`og_title`, `og_description`, `og_image`) when available.
 
-Events response includes `id`, `title`, `description`, `image`, `url`, `starts_at`, `ends_at`, `location`, `source` (telegram/luma), and `community`.
+Events response includes `id`, `title`, `description`, `image`, `url`, `starts_at`, `ends_at`, `location`, `source` (telegram/luma/guildhost), and `community`.
 
 ## Bot Commands
 

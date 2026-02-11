@@ -38,5 +38,16 @@
     "event_apis": [
       { "type": "luma", "url": "https://lu.ma/nsrt" }
     ]
+  },
+  "civic-tech-toronto": {
+    "name": "Civic Tech Toronto",
+    "group_id": null,
+    "output_channel": null,
+    "city": "toronto",
+    "topics": {},
+    "event_topics": [],
+    "event_apis": [
+      { "type": "guildhost", "url": "https://guild.host/civic-tech-toronto/events" }
+    ]
   }
 }
