@@ -38,8 +38,7 @@
     },
     "event_topics": ["events"],
     "event_apis": [
-      { "type": "luma", "url": "https://luma.com/cibc", "api_id": "cal-8H09wJN7syCCaRR" },
-      { "type": "eventus", "url": "https://eventus.city/in/novi_sad", "city_id": "1" }
+      { "type": "luma", "url": "https://luma.com/cibc", "api_id": "cal-8H09wJN7syCCaRR" }
     ]
   },
   "newspeak-house": {

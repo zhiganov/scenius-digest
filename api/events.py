@@ -22,7 +22,6 @@ from lib.database import get_event_links
 from lib.event_enrichment import enrich_event
 from lib.luma import fetch_luma_events
 from lib.guildhost import fetch_guildhost_events
-from lib.eventus import fetch_eventus_events
 
 logger = logging.getLogger(__name__)
 
@@ -149,8 +148,6 @@ class handler(BaseHTTPRequestHandler):
                     api_events.extend(fetch_luma_events(api_cfg["url"], key, api_cfg.get("api_id")))
                 elif api_cfg.get("type") == "guildhost":
                     api_events.extend(fetch_guildhost_events(api_cfg["url"], key))
-                elif api_cfg.get("type") == "eventus":
-                    api_events.extend(fetch_eventus_events(api_cfg["url"], key, api_cfg.get("city_id")))
 
         # Deduplicate: if Telegram URL matches external API URL, prefer external version
         api_urls = {_normalize_url(e["url"]) for e in api_events}
