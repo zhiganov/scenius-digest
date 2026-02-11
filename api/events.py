@@ -27,12 +27,21 @@ logger = logging.getLogger(__name__)
 
 
 def _normalize_url(url: str) -> str:
-    """Normalize URL for deduplication: lowercase host, strip trailing slash."""
+    """Normalize URL for deduplication.
+
+    Lowercases host, strips trailing slash, drops query/fragment,
+    and unifies luma.com / lu.ma domains.
+    """
     try:
         parsed = urlparse(url)
+        host = parsed.netloc.lower()
+        if host in ("luma.com", "www.luma.com"):
+            host = "lu.ma"
         normalized = parsed._replace(
-            netloc=parsed.netloc.lower(),
+            netloc=host,
             path=parsed.path.rstrip('/'),
+            query="",
+            fragment="",
         )
         return normalized.geturl()
     except Exception:
