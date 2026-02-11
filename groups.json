@@ -23,7 +23,9 @@
       "events": "24"
     },
     "event_topics": ["events"],
-    "event_apis": []
+    "event_apis": [
+      { "type": "luma", "url": "https://luma.com/cibc", "api_id": "cal-8H09wJN7syCCaRR" }
+    ]
   },
   "nsrt": {
     "name": "Novi Sad Relational Tech",
