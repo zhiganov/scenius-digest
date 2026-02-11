@@ -176,7 +176,7 @@ CREATE TABLE digest_links (
 
 OG metadata (`og_title`, `og_description`, `og_image`) is fetched automatically when the webhook stores a new link. Uses stdlib `urllib` with a 5-second timeout and reads only the first 32KB of HTML. Falls back to `<title>` and `<meta name="description">` when OG tags are absent. Consumers should prefer `og_title` over `title` and `og_description` over `description` when available.
 
-**Event enrichment:** Links shared in `event_topics` are stored with `type='event'`. The webhook calls `enrich_event()` which extracts structured data (start time, location) from known platforms — Luma via public API, Meetup/Eventbrite via ld+json parsing.
+**Event enrichment:** Links shared in `event_topics` are stored with `type='event'`. The webhook calls `enrich_event()` which extracts structured data (start time, location) from known platforms — Luma (both `lu.ma` and `luma.com` domains) via public API, Meetup/Eventbrite via ld+json parsing. The `/api/events` endpoint also re-enriches Telegram events at read time to pick up rescheduled dates and updated locations.
 
 ## MCP Integrations
 
