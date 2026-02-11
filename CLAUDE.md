@@ -48,6 +48,7 @@ External APIs ──────────────────────
 - `lib/event_enrichment.py` - Event platform detection (Luma/Meetup/Eventbrite) + structured data extraction
 - `lib/luma.py` - Luma calendar API fetcher (future events from a calendar URL)
 - `lib/guildhost.py` - guild.host events fetcher (scrapes Relay store from SSR page via bot user-agent)
+- `lib/eventus.py` - eventus.city events fetcher (JSON API by city_id)
 
 **Slash commands** (`.claude/commands/`):
 - `digest-links.md` - Weekly links roundup workflow (supports group argument)
@@ -85,9 +86,10 @@ Groups are defined in `groups.json` (project root):
 Each group can have:
 - `city` — slug for `/api/events?city=` filtering (used by Dear Neighbors)
 - `event_topics` — Telegram topics where links are treated as events (enriched with date/location)
-- `event_apis` — external event sources polled by `/api/events` (Luma calendars, guild.host communities)
+- `event_apis` — external event sources polled by `/api/events` (Luma calendars, guild.host communities, eventus.city cities)
   - Luma: `{ "type": "luma", "url": "...", "api_id": "cal-..." }` — `api_id` is required since Luma migrated from lu.ma to luma.com and the URL slug no longer works as an API key. Find the `cal-` ID by searching for `cal-` in the page source of the Luma calendar page.
   - guild.host: `{ "type": "guildhost", "url": "https://guild.host/{slug}/events" }` — scrapes SSR page using bot user-agent
+  - eventus.city: `{ "type": "eventus", "url": "https://eventus.city/in/{city}", "city_id": "1" }` — JSON API, `city_id` required (Novi Sad = 1)
 
 ## Development
 
@@ -139,7 +141,7 @@ Deployed at `https://scenius-digest.vercel.app`. Consumed by Claude Code (digest
 
 Links response includes `group_id`, `group_name`, `message_text`, and OG metadata fields (`og_title`, `og_description`, `og_image`) when available.
 
-Events response includes `id`, `title`, `description`, `image`, `url`, `starts_at`, `ends_at`, `location`, `source` (telegram/luma/guildhost), and `community`.
+Events response includes `id`, `title`, `description`, `image`, `url`, `starts_at`, `ends_at`, `location`, `source` (telegram/luma/guildhost/eventus), and `community`.
 
 ## Bot Commands
 
