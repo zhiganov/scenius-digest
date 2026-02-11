@@ -47,7 +47,7 @@ External APIs ──────────────────────
 - `lib/opengraph.py` - Open Graph metadata fetcher (stdlib only, 5s timeout, 32KB read limit)
 - `lib/event_enrichment.py` - Event platform detection (Luma/Meetup/Eventbrite) + structured data extraction
 - `lib/luma.py` - Luma calendar API fetcher (future events from a calendar URL)
-- `lib/guildhost.py` - guild.host events fetcher (scrapes __NEXT_DATA__ from community events page)
+- `lib/guildhost.py` - guild.host events fetcher (scrapes Relay store from SSR page via bot user-agent)
 
 **Slash commands** (`.claude/commands/`):
 - `digest-links.md` - Weekly links roundup workflow (supports group argument)
@@ -77,7 +77,7 @@ Groups are defined in `groups.json` (project root):
     "city": "novi-sad",
     "topics": { "links": "16", "events": "8" },
     "event_topics": ["events"],
-    "event_apis": [{ "type": "luma", "url": "https://lu.ma/nsrt" }]
+    "event_apis": [{ "type": "luma", "url": "https://luma.com/cibc", "api_id": "cal-8H09wJN7syCCaRR" }]
   }
 }
 ```
@@ -86,6 +86,8 @@ Each group can have:
 - `city` — slug for `/api/events?city=` filtering (used by Dear Neighbors)
 - `event_topics` — Telegram topics where links are treated as events (enriched with date/location)
 - `event_apis` — external event sources polled by `/api/events` (Luma calendars, guild.host communities)
+  - Luma: `{ "type": "luma", "url": "...", "api_id": "cal-..." }` — `api_id` is required since Luma migrated from lu.ma to luma.com and the URL slug no longer works as an API key. Find the `cal-` ID by searching for `cal-` in the page source of the Luma calendar page.
+  - guild.host: `{ "type": "guildhost", "url": "https://guild.host/{slug}/events" }` — scrapes SSR page using bot user-agent
 
 ## Development
 
