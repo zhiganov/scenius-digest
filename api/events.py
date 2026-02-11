@@ -2,9 +2,14 @@
 
 Merges Telegram event links (Supabase) with external event APIs (Luma).
 Filters: ?community=nsrt, ?city=novi-sad, or no filter (all).
+
+Telegram events are re-enriched at read time to pick up changes
+(e.g. rescheduled dates, updated locations) from the source platform.
 """
 
 import json
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -14,7 +19,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from lib import config
 from lib.database import get_event_links
+from lib.event_enrichment import enrich_event
 from lib.luma import fetch_luma_events
+
+logger = logging.getLogger(__name__)
 
 
 def _normalize_url(url: str) -> str:
@@ -65,6 +73,34 @@ def _telegram_events_to_response(links: list[dict], group_key_by_id: dict) -> li
     return events
 
 
+def _refresh_event_metadata(events: list[dict]) -> None:
+    """Re-enrich events from their source platforms in parallel.
+
+    Overwrites starts_at/ends_at/location with fresh data when available.
+    Falls back to existing (DB) values if enrichment fails or returns nothing.
+    """
+    if not events:
+        return
+
+    def _enrich(event):
+        try:
+            return event, enrich_event(event["url"])
+        except Exception as e:
+            logger.debug(f"Re-enrichment failed for {event['url']}: {e}")
+            return event, {}
+
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        futures = {pool.submit(_enrich, e): e for e in events}
+        for future in as_completed(futures):
+            event, fresh = future.result()
+            if fresh.get("starts_at"):
+                event["starts_at"] = fresh["starts_at"]
+            if fresh.get("ends_at"):
+                event["ends_at"] = fresh["ends_at"]
+            if fresh.get("location"):
+                event["location"] = fresh["location"]
+
+
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -80,6 +116,9 @@ class handler(BaseHTTPRequestHandler):
         # Source A: Telegram event links from Supabase
         tg_links = get_event_links(group_ids=group_ids if group_ids else None)
         tg_events = _telegram_events_to_response(tg_links, group_key_by_id)
+
+        # Re-enrich Telegram events to pick up rescheduled dates, updated locations
+        _refresh_event_metadata(tg_events)
 
         # Source B: External event APIs (Luma, etc.)
         api_events = []
