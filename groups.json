@@ -62,5 +62,16 @@
     "event_apis": [
       { "type": "guildhost", "url": "https://guild.host/civic-tech-toronto/events" }
     ]
+  },
+  "metagov": {
+    "name": "Metagov",
+    "group_id": null,
+    "output_channel": null,
+    "city": null,
+    "topics": {},
+    "event_topics": [],
+    "event_apis": [
+      { "type": "luma", "url": "https://luma.com/metagov-calendar", "api_id": "cal-TQmrEkYDPwQCqYa" }
+    ]
   }
 }

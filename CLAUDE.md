@@ -4,14 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Multi-community digest system that collects links from Telegram groups and serves them via two channels: curated Telegram digests (via Claude Code) and a REST API consumed by [My Community](https://github.com/Citizen-Infra/my-community) Chrome extension.
+Multi-community digest system that collects links from Telegram groups (and soon Slack) and serves them via two channels: curated Telegram digests (via Claude Code) and a REST API consumed by [My Community](https://github.com/Citizen-Infra/my-community) Chrome extension.
 
 **Supported communities:**
-- **Sensemaking Scenius** → @scenius channel
-- **Citizen Infra Builders** → [@citizen_infra](https://t.me/citizen_infra) channel
-- **Novi Sad Relational Tech (NSRT)** → [@nsrt_news](https://t.me/nsrt_news) channel
+- **Sensemaking Scenius** → Telegram → @scenius channel
+- **Citizen Infra Builders** → Telegram → [@citizen_infra](https://t.me/citizen_infra) channel
+- **Novi Sad Relational Tech (NSRT)** → Telegram → [@nsrt_news](https://t.me/nsrt_news) channel
 - **Newspeak House** → events API only (Luma, London)
 - **Civic Tech Toronto** → events API only (guild.host)
+- **Metagov** → events API only (Luma) — Slack link collection planned (see design doc)
 
 Four outputs:
 1. **Meeting digests** — Narrative summaries of Zoom calls (transcripts via Fireflies.ai) → Telegram
@@ -26,7 +27,8 @@ Zoom Meetings ──► Fireflies.ai ──┐
                                  ├──► Claude Code ──► Telegram Channels
 Telegram Groups ──► Webhook ──► Supabase
                    (+ OG/events)    ├──► /api/links ──► My Community (digest feed)
-                                    ├──► /api/events ──► MC + DN (participation)
+Slack Workspaces ─► Slack Event ──┘ ├──► /api/events ──► MC + DN (participation)
+                   (planned)        │
 External APIs ──────────────────────┘    (Luma, guild.host)
 ```
 
@@ -49,6 +51,10 @@ External APIs ──────────────────────
 - `lib/luma.py` - Luma calendar API fetcher (future events from a calendar URL)
 - `lib/guildhost.py` - guild.host events fetcher (scrapes Relay store from SSR page via bot user-agent)
 - `lib/eventus.py` - eventus.city events fetcher (archived — events lacked metadata and linked to unrelated Telegram groups)
+
+**Design docs** (`docs/plans/`):
+- `2026-02-08-events-aggregation-design.md` - Events API design (implemented)
+- `2026-02-12-slack-integration-design.md` - Slack bot integration for multi-platform link digests
 
 **Slash commands** (`.claude/commands/`):
 - `digest-links.md` - Weekly links roundup workflow (supports group argument)
@@ -84,11 +90,16 @@ Groups are defined in `groups.json` (project root):
 ```
 
 Each group can have:
+- `platform` — `"telegram"` (default if omitted) or `"slack"`. Determines ingestion path.
 - `city` — slug for `/api/events?city=` filtering (used by Dear Neighbors)
 - `event_topics` — Telegram topics where links are treated as events (enriched with date/location)
 - `event_apis` — external event sources polled by `/api/events` (Luma calendars, guild.host communities)
   - Luma: `{ "type": "luma", "url": "...", "api_id": "cal-..." }` — `api_id` is required since Luma migrated from lu.ma to luma.com and the URL slug no longer works as an API key. Find the `cal-` ID by searching for `cal-` in the page source of the Luma calendar page.
   - guild.host: `{ "type": "guildhost", "url": "https://guild.host/{slug}/events" }` — scrapes SSR page using bot user-agent
+
+### Slack Integration (planned)
+
+Slack-based communities (like Metagov) use an OAuth-installed Slack app instead of the Telegram webhook. Channel-to-topic mappings are stored in a `slack_installations` Supabase table, not in `groups.json`. Links are stored in the same `digest_links` table with `source = 'slack'`. Digests still post to Telegram. See `docs/plans/2026-02-12-slack-integration-design.md` for full design.
 
 ## Development
 
@@ -272,10 +283,13 @@ Format:
 - Broken links
 - Transcript links (require login)
 
-## Telegram Groups
+## Communities
 
-| Group | Key | Group ID | Output Channel | Topics |
-|-------|-----|----------|----------------|--------|
-| Sensemaking Scenius | scenius | -1002141367711 | -1002708526104 (@scenius) | links, memes, events |
-| Citizen Infra Builders | cibc | -1003188266615 | -1001800461815 (@citizen_infra) | news, resources, events |
-| Novi Sad Relational Tech | nsrt | -1003669626939 | -1003857482838 | links, events |
+| Community | Key | Platform | Link source | Digest output | Events |
+|-----------|-----|----------|-------------|---------------|--------|
+| Sensemaking Scenius | scenius | Telegram | TG topics: links, memes, events | @scenius | TG events |
+| Citizen Infra Builders | cibc | Telegram | TG topics: news, resources, events | @citizen_infra | TG events + Luma |
+| Novi Sad Relational Tech | nsrt | Telegram | TG topics: links, events | @nsrt_news | TG events + Luma |
+| Newspeak House | newspeak-house | — | — | — | Luma |
+| Civic Tech Toronto | civic-tech-toronto | — | — | — | guild.host |
+| Metagov | metagov | Slack (planned) | Slack channels (planned) | TG channel (planned) | Luma |
