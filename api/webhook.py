@@ -175,25 +175,3 @@ class handler(BaseHTTPRequestHandler):
                 lines.append("")
             send_message(chat_id, "\n".join(lines))
 
-        elif command == "/digest":
-            from lib.digest import generate_weekly_digest
-            from lib.database import mark_as_published
-
-            arg = parts[1] if len(parts) > 1 else None
-            if arg and arg in config.MONITORED_GROUPS:
-                groups_to_process = {arg: config.MONITORED_GROUPS[arg]}
-            else:
-                groups_to_process = config.MONITORED_GROUPS
-
-            for key, gc in groups_to_process.items():
-                group_id = gc.get("group_id")
-                output_channel = gc.get("output_channel")
-                group_name = gc.get("name", key)
-                if not output_channel:
-                    continue
-                msg, link_ids = generate_weekly_digest(group_id=group_id, group_name=group_name)
-                if msg:
-                    send_message(output_channel, msg)
-                    mark_as_published(link_ids)
-
-            send_message(chat_id, f"Digest posted for: {arg or 'all groups'}")

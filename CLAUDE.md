@@ -162,7 +162,6 @@ Send these in a monitored Telegram group:
 | `/debug` | Show chat/topic IDs, check if monitored |
 | `/groups` | List all configured groups |
 | `/stats [group]` | Show link statistics |
-| `/digest [group]` | Post digest for group |
 
 ## Database
 
