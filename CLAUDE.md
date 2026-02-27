@@ -10,9 +10,9 @@ Multi-community digest system that collects links from Telegram groups (and soon
 - **Sensemaking Scenius** → Telegram → @scenius channel
 - **Citizen Infra Builders** → Telegram → [@citizen_infra](https://t.me/citizen_infra) channel
 - **Novi Sad Relational Tech (NSRT)** → Telegram → [@nsrt_news](https://t.me/nsrt_news) channel
-- **Newspeak House** → events API only (Luma, London)
-- **Civic Tech Toronto** → events API only (guild.host)
-- **Metagov** → events API only (Luma) — Slack link collection planned (see design doc)
+- **Newspeak House** → events only via `event_sources.json` (Luma, London) — managed by community-admin
+- **Civic Tech Toronto** → events only via `event_sources.json` (guild.host) — managed by community-admin
+- **Metagov** → events only via `event_sources.json` (Luma) — managed by community-admin
 
 Four outputs:
 1. **Meeting digests** — Narrative summaries of Zoom calls (transcripts via Fireflies.ai) → Telegram
@@ -42,9 +42,8 @@ External APIs ──────────────────────
 - `api/health.py` - GET health check
 
 **Shared modules** (`lib/`):
-- `lib/config.py` - Env vars + groups.json loading + helpers (`is_event_topic()`, `get_groups_by_city()`)
+- `lib/config.py` - Env vars + groups.json/event_sources.json loading + helpers (`is_event_topic()`, `get_all_event_groups()`)
 - `lib/database.py` - Supabase client (`digest_links` table, `add_link()`, `get_event_links()`)
-- `lib/digest.py` - Digest formatting
 - `lib/telegram.py` - Telegram Bot API helper (sendMessage via urllib)
 - `lib/opengraph.py` - Open Graph metadata fetcher (stdlib only, 5s timeout, 32KB read limit)
 - `lib/event_enrichment.py` - Event platform detection (Luma/Meetup/Eventbrite) + structured data extraction
@@ -73,7 +72,7 @@ Telegram-based communities are defined in `groups.json` (project root). Non-Tele
     "group_id": "-1002141367711",
     "output_channel": "-1002708526104",
     "city": null,
-    "topics": { "links": "230", "memes": "4605", "events": "2156" },
+    "topics": { "links": "230", "memes": "4605", "events": "2156", "ai-tools-library": "6430" },
     "event_topics": ["events"],
     "event_apis": []
   },
