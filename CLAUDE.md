@@ -64,7 +64,7 @@ External APIs ──────────────────────
 
 ## Multi-Group Configuration
 
-Groups are defined in `groups.json` (project root):
+Telegram-based communities are defined in `groups.json` (project root). Non-Telegram communities with external event sources only are in `event_sources.json` (interim — will be replaced by community-admin's `GET /api/config`).
 
 ```json
 {
@@ -89,11 +89,13 @@ Groups are defined in `groups.json` (project root):
 }
 ```
 
-Each group can have:
+Each group in `groups.json` can have:
 - `platform` — `"telegram"` (default if omitted) or `"slack"`. Determines ingestion path.
 - `city` — slug for `/api/events?city=` filtering (used by Dear Neighbors)
 - `event_topics` — Telegram topics where links are treated as events (enriched with date/location)
 - `event_apis` — external event sources polled by `/api/events` (Luma calendars, guild.host communities)
+
+Each entry in `event_sources.json` has: `name`, `city`, and `event_apis`. The events API (`/api/events`) merges both files when querying.
   - Luma: `{ "type": "luma", "url": "...", "api_id": "cal-..." }` — `api_id` is required since Luma migrated from lu.ma to luma.com and the URL slug no longer works as an API key. Find the `cal-` ID by searching for `cal-` in the page source of the Luma calendar page.
   - guild.host: `{ "type": "guildhost", "url": "https://guild.host/{slug}/events" }` — scrapes SSR page using bot user-agent
 
@@ -284,11 +286,11 @@ Format:
 
 ## Communities
 
-| Community | Key | Platform | Link source | Digest output | Events |
-|-----------|-----|----------|-------------|---------------|--------|
-| Sensemaking Scenius | scenius | Telegram | TG topics: links, memes, events | @scenius | TG events |
-| Citizen Infra Builders | cibc | Telegram | TG topics: news, resources, events | @citizen_infra | TG events + Luma |
-| Novi Sad Relational Tech | nsrt | Telegram | TG topics: links, events | @nsrt_news | TG events + Luma |
-| Newspeak House | newspeak-house | — | — | — | Luma |
-| Civic Tech Toronto | civic-tech-toronto | — | — | — | guild.host |
-| Metagov | metagov | Slack (planned) | Slack channels (planned) | TG channel (planned) | Luma |
+| Community | Key | Config file | Link source | Digest output | Events |
+|-----------|-----|-------------|-------------|---------------|--------|
+| Sensemaking Scenius | scenius | groups.json | TG topics: links, memes, events, ai-tools-library | @scenius | TG events |
+| Citizen Infra Builders | cibc | groups.json | TG topics: news, resources, events | @citizen_infra | TG events + Luma |
+| Novi Sad Relational Tech | nsrt | groups.json | TG topics: links, events | @nsrt_news | TG events + Luma |
+| Newspeak House | newspeak-house | event_sources.json | — (community-admin) | — | Luma |
+| Civic Tech Toronto | civic-tech-toronto | event_sources.json | — (community-admin) | — | guild.host |
+| Metagov | metagov | event_sources.json | — (community-admin) | — | Luma |

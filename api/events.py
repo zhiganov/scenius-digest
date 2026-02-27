@@ -49,19 +49,21 @@ def _normalize_url(url: str) -> str:
 
 
 def _get_matching_groups(params: dict) -> dict:
-    """Return groups matching the query params."""
+    """Return groups matching the query params (includes event_sources.json)."""
     community = params.get("community", [None])[0]
     city = params.get("city", [None])[0]
 
+    all_groups = config.get_all_event_groups()
+
     if community:
-        cfg = config.MONITORED_GROUPS.get(community)
+        cfg = all_groups.get(community)
         if cfg:
             return {community: cfg}
         return {}
     elif city:
-        return config.get_groups_by_city(city)
+        return config.get_event_groups_by_city(city)
     else:
-        return dict(config.MONITORED_GROUPS)
+        return all_groups
 
 
 def _telegram_events_to_response(links: list[dict], group_key_by_id: dict) -> list[dict]:

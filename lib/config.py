@@ -15,20 +15,26 @@ WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
-# Load groups configuration
-# In Vercel, __file__ is in lib/, groups.json is in project root
-GROUPS_FILE = Path(__file__).parent.parent / "groups.json"
+# In Vercel, __file__ is in lib/, JSON configs are in project root
+_PROJECT_ROOT = Path(__file__).parent.parent
+
+# groups.json — Telegram-based communities (webhook, link collection, digests)
+GROUPS_FILE = _PROJECT_ROOT / "groups.json"
+
+# event_sources.json — non-Telegram communities with external event APIs only
+# These are managed by community-admin (once built); this file is interim.
+EVENT_SOURCES_FILE = _PROJECT_ROOT / "event_sources.json"
 
 
-def load_groups():
-    """Load monitored groups from JSON config file."""
-    if GROUPS_FILE.exists():
-        with open(GROUPS_FILE) as f:
+def _load_json(path: Path) -> dict:
+    if path.exists():
+        with open(path) as f:
             return json.load(f)
     return {}
 
 
-MONITORED_GROUPS = load_groups()
+MONITORED_GROUPS = _load_json(GROUPS_FILE)
+EVENT_SOURCES = _load_json(EVENT_SOURCES_FILE)
 
 
 def get_group_by_chat_id(chat_id: str) -> tuple[str, dict] | tuple[None, None]:
@@ -69,5 +75,20 @@ def get_groups_by_city(city: str) -> dict:
     """Return all groups matching a city slug."""
     return {
         key: cfg for key, cfg in MONITORED_GROUPS.items()
+        if cfg.get("city") == city
+    }
+
+
+def get_all_event_groups() -> dict:
+    """Return all communities with event sources (groups + event_sources)."""
+    merged = dict(MONITORED_GROUPS)
+    merged.update(EVENT_SOURCES)
+    return merged
+
+
+def get_event_groups_by_city(city: str) -> dict:
+    """Return all communities matching a city slug (groups + event_sources)."""
+    return {
+        key: cfg for key, cfg in get_all_event_groups().items()
         if cfg.get("city") == city
     }

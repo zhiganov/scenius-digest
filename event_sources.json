@@ -1,0 +1,23 @@
+{
+  "newspeak-house": {
+    "name": "Newspeak House",
+    "city": "london",
+    "event_apis": [
+      { "type": "luma", "url": "https://luma.com/newspeak-house", "api_id": "cal-WGvTrmNL8OxL5Tw" }
+    ]
+  },
+  "civic-tech-toronto": {
+    "name": "Civic Tech Toronto",
+    "city": "toronto",
+    "event_apis": [
+      { "type": "guildhost", "url": "https://guild.host/civic-tech-toronto/events" }
+    ]
+  },
+  "metagov": {
+    "name": "Metagov",
+    "city": null,
+    "event_apis": [
+      { "type": "luma", "url": "https://luma.com/metagov-calendar", "api_id": "cal-TQmrEkYDPwQCqYa" }
+    ]
+  }
+}

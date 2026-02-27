@@ -41,38 +41,5 @@
     "event_apis": [
       { "type": "luma", "url": "https://luma.com/cibc", "api_id": "cal-8H09wJN7syCCaRR" }
     ]
-  },
-  "newspeak-house": {
-    "name": "Newspeak House",
-    "group_id": null,
-    "output_channel": null,
-    "city": "london",
-    "topics": {},
-    "event_topics": [],
-    "event_apis": [
-      { "type": "luma", "url": "https://luma.com/newspeak-house", "api_id": "cal-WGvTrmNL8OxL5Tw" }
-    ]
-  },
-  "civic-tech-toronto": {
-    "name": "Civic Tech Toronto",
-    "group_id": null,
-    "output_channel": null,
-    "city": "toronto",
-    "topics": {},
-    "event_topics": [],
-    "event_apis": [
-      { "type": "guildhost", "url": "https://guild.host/civic-tech-toronto/events" }
-    ]
-  },
-  "metagov": {
-    "name": "Metagov",
-    "group_id": null,
-    "output_channel": null,
-    "city": null,
-    "topics": {},
-    "event_topics": [],
-    "event_apis": [
-      { "type": "luma", "url": "https://luma.com/metagov-calendar", "api_id": "cal-TQmrEkYDPwQCqYa" }
-    ]
   }
 }
