@@ -112,8 +112,8 @@ pip install -r requirements.txt
 # Set environment variables (see .env.example)
 cp .env.example .env
 
-# Deploy to Vercel
-vercel --prod
+# Deploy to Vercel (manual — GitHub auto-deploy broken, needs org owner to authorize Vercel GitHub App for sensemaking-scenius org)
+npx vercel --prod --scope team_gEI6i7fAEHyXy1j3KYQIFpPw
 
 # Set env vars in Vercel
 vercel env add BOT_TOKEN
