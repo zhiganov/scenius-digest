@@ -8,7 +8,6 @@ Curated highlights from multiple communities, automatically published to their r
 |-----------|----------------|
 | Sensemaking Scenius | [@scenius](https://t.me/scenius) |
 | Citizen Infra Builders | [@citizen_infra](https://t.me/citizen_infra) |
-| Novi Sad Relational Tech | [@nsrt_news](https://t.me/nsrt_news) |
 
 ## What It Does
 
