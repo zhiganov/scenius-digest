@@ -52,13 +52,13 @@ Unified events feed from multiple sources, consumed by MC and DN extensions.
         ┌─────────────────┐
         │   Claude Code   │
         │ (or Claude API) │
-        └──────┬──────────┘
-               │
-               ▼
-     ┌──────────────────┐
-     │ POST /api/       │
-     │ send_message     │──────► Telegram Channels
-     └──────────────────┘
+        └────────┬────────┘
+                 │
+                 ▼
+        ┌─────────────────┐
+        │ POST /api/      │
+        │ send_message    │──────► Telegram Channels
+        └─────────────────┘
 ```
 
 ## Setup
