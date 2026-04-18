@@ -12,15 +12,16 @@ Multi-community digest system: collects links from Telegram groups, serves curat
 pip install -r requirements.txt
 cp .env.example .env
 
-# Deploy (manual — GitHub auto-deploy broken, needs org owner authorization)
-npx vercel --prod --scope team_gEI6i7fAEHyXy1j3KYQIFpPw
+# Auto-deploy: push to main on github.com/zhiganov/scenius-digest triggers Vercel build.
+# Manual fallback (requires login as tema.zhiganov@gmail.com for "Artem's projects" team):
+npx vercel --prod
 
-# Env vars
-vercel env add BOT_TOKEN
-vercel env add WEBHOOK_SECRET    # dual-use: Telegram webhook secret + Bearer auth for send-message/backfill endpoints
-vercel env add SUPABASE_URL
-vercel env add SUPABASE_SERVICE_KEY
+# Env vars (set via Vercel dashboard — Artem's projects → scenius-digest → Settings → Environment Variables)
+# Required: BOT_TOKEN, WEBHOOK_SECRET, SUPABASE_URL, SUPABASE_SERVICE_KEY
+# WEBHOOK_SECRET is dual-use: Telegram secret_token header + Bearer auth for send-message/backfill endpoints
 ```
+
+**Repo moved 2026-04-17** from `sensemaking-scenius/scenius-digest` to `zhiganov/scenius-digest` so the Vercel GitHub App could attach cleanly to the personal team (cross-org GitHub App install kept failing). Vercel project moved from Harmonica → Artem's projects team in the same batch.
 
 ### Webhook Registration
 
