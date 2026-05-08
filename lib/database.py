@@ -63,20 +63,21 @@ def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
 
 
 def get_unpublished_links(since_days: int = 7, group_id: str = None, include_published: bool = False) -> list[dict]:
-    """Get links from the last N days, optionally filtered by group. By default only unpublished."""
+    """Get unpublished links (or all links from the last N days if include_published=True)."""
     client = get_client()
-    since = (datetime.now(timezone.utc) - timedelta(days=since_days)).isoformat()
 
     query = (
         client.table("digest_links")
         .select("*")
         .neq("type", "event")
-        .gte("shared_at", since)
         .order("topic")
         .order("shared_at", desc=True)
     )
 
-    if not include_published:
+    if include_published:
+        since = (datetime.now(timezone.utc) - timedelta(days=since_days)).isoformat()
+        query = query.gte("shared_at", since)
+    else:
         query = query.eq("published", False)
 
     if group_id:
