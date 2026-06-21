@@ -21,6 +21,7 @@
     "topics": {
       "news": "11",
       "resources": "266",
+      "deliberative-tech": "902",
       "events": "24"
     },
     "event_topics": ["events"],
