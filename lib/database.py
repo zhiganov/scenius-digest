@@ -17,6 +17,7 @@ def get_client():
 
 def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
              description: str = None, message_id: int = None, message_text: str = None,
+             topic_thread_id: int = None,
              group_id: str = None, group_name: str = None,
              og_title: str = None, og_description: str = None, og_image: str = None,
              link_type: str = None, event_starts_at: str = None, event_location: str = None) -> bool:
@@ -40,6 +41,7 @@ def add_link(url: str, topic: str, shared_by: str = None, title: str = None,
         "group_id": group_id,
         "group_name": group_name,
         "topic": topic,
+        "topic_thread_id": topic_thread_id,
         "shared_by": shared_by,
         "message_id": message_id,
         "message_text": message_text,

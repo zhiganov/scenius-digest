@@ -67,15 +67,22 @@ class handler(BaseHTTPRequestHandler):
         if not group_key:
             return
 
+        # Extract URLs (cheap regex — skip non-link messages before topic lookup)
+        urls = extract_urls(text)
+        if not urls:
+            return
+
         # Check if from monitored topic
         topic_id = message.get("message_thread_id")
         topic_name = config.get_topic_name(group_key, topic_id)
         if not topic_name:
-            return
-
-        # Extract URLs
-        urls = extract_urls(text)
-        if not urls:
+            # A link was shared in the General topic or a thread not in groups.json.
+            # Log it so a drifted topic id (or a topic worth monitoring) is visible
+            # instead of silently vanishing.
+            logger.info(
+                f"[{group_config.get('name', group_key)}] Dropped {len(urls)} link(s) "
+                f"from unmapped topic (thread_id={topic_id}): {urls}"
+            )
             return
 
         # Get sender info
@@ -99,6 +106,7 @@ class handler(BaseHTTPRequestHandler):
             added = add_link(
                 url=url,
                 topic=topic_name,
+                topic_thread_id=topic_id,
                 shared_by=shared_by,
                 message_id=message.get("message_id"),
                 message_text=text,

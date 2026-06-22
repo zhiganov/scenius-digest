@@ -110,6 +110,7 @@ CREATE TABLE digest_links (
   group_id TEXT,
   group_name TEXT,
   topic TEXT NOT NULL,
+  topic_thread_id BIGINT,            -- raw Telegram message_thread_id at ingest (attribution audit; nullable)
   shared_by TEXT,
   shared_at TIMESTAMPTZ DEFAULT NOW(),
   message_id BIGINT,
