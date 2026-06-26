@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from lib import config
 from lib.database import get_event_links
-from lib.event_enrichment import enrich_event
+from lib.event_enrichment import enrich_event, EVENT_URL_RE
 from lib.luma import fetch_luma_events
 from lib.guildhost import fetch_guildhost_events
 
@@ -141,6 +141,14 @@ class handler(BaseHTTPRequestHandler):
 
         # Re-enrich Telegram events to pick up rescheduled dates, updated locations
         _refresh_event_metadata(tg_events)
+
+        # Keep only real events: dated after enrichment, or an event-page URL.
+        # Drops bare resource links posted in the events topic (YouTube, plain
+        # homepages, surveys). See scenius-digest#12.
+        tg_events = [
+            e for e in tg_events
+            if e.get("starts_at") or EVENT_URL_RE.search(e.get("url") or "")
+        ]
 
         # Source B: External event APIs (Luma, etc.)
         api_events = []

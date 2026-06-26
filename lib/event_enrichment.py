@@ -11,8 +11,21 @@ logger = logging.getLogger(__name__)
 PLATFORM_PATTERNS = [
     (re.compile(r'https?://(?:www\.)?(?:lu\.ma|luma\.com)/([^/?#]+)'), 'luma'),
     (re.compile(r'https?://(?:www\.)?meetup\.com/.+/events/'), 'meetup'),
-    (re.compile(r'https?://(?:www\.)?eventbrite\.com/e/'), 'eventbrite'),
+    (re.compile(r'https?://(?:www\.)?eventbrite\.[a-z.]+/e/'), 'eventbrite'),
 ]
+
+# A URL is treated as an event page (for date-enrichment and for filtering the
+# events endpoint) when it's a known platform or has an event-ish path. This keeps
+# real events, even undated ones like Zoom registration pages, and excludes bare
+# resource links (YouTube, plain homepages, surveys).
+EVENT_URL_RE = re.compile(
+    r'(?:'
+    r'lu\.ma/|luma\.com/|meetup\.com/.+/events/|eventbrite\.[a-z.]+/e/|'
+    r'addevent\.com/event/|guild\.host/|hopin\.com/|airmeet\.com/|'
+    r'/(?:events?|webinars?|seminars?|tickets|register)(?:/|$|\?)'
+    r')',
+    re.IGNORECASE,
+)
 
 LD_JSON_PATTERN = re.compile(
     r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
@@ -35,17 +48,15 @@ def enrich_event(url: str, html: str = None) -> dict:
     For Meetup/Eventbrite: parses ld+json from HTML. Fetches HTML if not provided.
     """
     platform = detect_platform(url)
-    if not platform:
-        return {}
-
     try:
         if platform == 'luma':
             return _enrich_luma(url)
-        else:
+        # ld+json for known HTML platforms and any event-ish URL (generic fallback)
+        if platform in ('meetup', 'eventbrite') or EVENT_URL_RE.search(url):
             return _enrich_ldjson(url, html)
     except Exception as e:
         logger.debug(f"Event enrichment failed for {url}: {e}")
-        return {}
+    return {}
 
 
 def _enrich_luma(url: str) -> dict:
@@ -73,7 +84,7 @@ def _enrich_luma(url: str) -> dict:
 
 
 def _enrich_ldjson(url: str, html: str = None) -> dict:
-    """Parse ld+json Event schema from HTML."""
+    """Parse ld+json Event schema from HTML (handles arrays, @graph, Event subtypes)."""
     if not html:
         html = _fetch_html(url, max_bytes=262144)
     if not html:
@@ -84,14 +95,34 @@ def _enrich_ldjson(url: str, html: str = None) -> dict:
             ld = json.loads(match.group(1))
         except (json.JSONDecodeError, ValueError):
             continue
-
-        # Handle both single objects and arrays
-        items = ld if isinstance(ld, list) else [ld]
-        for item in items:
-            if item.get("@type") == "Event":
-                return _parse_ld_event(item)
+        for item in _iter_ld_items(ld):
+            if _is_event_type(item.get("@type")):
+                parsed = _parse_ld_event(item)
+                if parsed.get("starts_at"):
+                    return parsed
 
     return {}
+
+
+def _iter_ld_items(ld):
+    """Yield every dict in an ld+json blob, descending into lists and @graph."""
+    stack = [ld]
+    while stack:
+        cur = stack.pop()
+        if isinstance(cur, list):
+            stack.extend(cur)
+        elif isinstance(cur, dict):
+            yield cur
+            graph = cur.get("@graph")
+            if isinstance(graph, list):
+                stack.extend(graph)
+
+
+def _is_event_type(type_value) -> bool:
+    """True for schema.org Event or any subtype (EducationEvent, BusinessEvent, ...)."""
+    if isinstance(type_value, list):
+        return any(_is_event_type(t) for t in type_value)
+    return isinstance(type_value, str) and (type_value == "Event" or type_value.endswith("Event"))
 
 
 def _parse_ld_event(item: dict) -> dict:
