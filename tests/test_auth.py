@@ -71,7 +71,10 @@ def test_tampered_signature_returns_empty(keypair):
     priv, _ = keypair
     token = _make_token(priv, memberships=[{"community_id": 7, "role": "member"}])
     head, payload, sig = token.split(".")
-    bad_sig = sig[:-1] + ("A" if sig[-1] != "A" else "B")
+    # Flip the FIRST signature char (not the last - the last base64url char of a
+    # P-256 signature carries unused padding bits, so flipping it is a no-op ~25%
+    # of the time). Any other char encodes full bytes, so this always corrupts.
+    bad_sig = ("A" if sig[0] != "A" else "B") + sig[1:]
     tampered = f"{head}.{payload}.{bad_sig}"
     assert auth.member_ids_from_request({"Authorization": f"Bearer {tampered}"}) == set()
 
