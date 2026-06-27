@@ -21,3 +21,9 @@
 - **Decisions:** `groups.json` stays as the fallback (zero-disruption; R8 held — consumers unchanged). `?identity=` is self-asserted (obscurity, not access control) → being replaced by verified JWTs (community-admin#21).
 - **State:** All deployed + verified live.
 - **Next:** IdP **S2** — verify community-admin JWTs via JWKS, filter by the `memberships` claim, drop `?identity=` + `members`-in-`/api/config`.
+
+## 2026-06-27 — IdP S2: verify tokens, drop ?identity=
+- **Done:** scenius-digest now verifies community-admin ES256 JWTs offline via JWKS (`lib/auth.py`, PyJWT[crypto]) and gates private communities by the verified `memberships` claim across `/api/groups`, `/api/events`, `/api/links`. Removed the self-asserted `?identity=` param. Added the repo's first pytest suite (11 tests: 6 auth + 5 config). Pushed + deployed.
+- **Decisions:** Verify path fails closed — any missing/invalid/expired token or JWKS failure → empty member set → public only; private is never served without a valid token. `CONFIG_READ_SECRET` (#13 avails gate) left untouched; it coexists with the JWT path on `/api/groups`. Built subagent-driven (TDD); Opus final whole-branch review = READY TO ROLL OUT, 0 Critical/Important.
+- **State:** Live. Verified anon → 3 public communities (cibc/nsrt/scenius); a real token decodes with the correct `iss` + slug memberships; JWKS live. The private-gating reveal is not demonstrable in prod (no private community has a Telegram `group_id`) — proven by tests + review, to be exercised in S3.
+- **Next:** S3 — MC/DN email sign-in send Bearer tokens, exercising this gating end-to-end with real data.
