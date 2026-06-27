@@ -1,13 +1,12 @@
 import json
 import os
 from http.server import BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
 
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib import config
+from lib import auth, config
 
 # group_id + output_channel are Telegram internals (source-group / output-channel
 # chat IDs). They are exposed only to callers presenting the read-only config
@@ -18,13 +17,13 @@ CONFIG_READ_SECRET = os.environ.get("CONFIG_READ_SECRET")
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        identity = parse_qs(urlparse(self.path).query).get("identity", [None])[0]
+        member_ids = auth.member_ids_from_request(self.headers)
         authorized = bool(CONFIG_READ_SECRET) and (
             self.headers.get("Authorization", "") == f"Bearer {CONFIG_READ_SECRET}"
         )
 
         groups = {}
-        for key, cfg in config.visible_groups(config.MONITORED_GROUPS, identity).items():
+        for key, cfg in config.visible_groups(config.MONITORED_GROUPS, member_ids).items():
             entry = {
                 "name": cfg.get("name", key),
                 "topics": cfg.get("topics", {}),

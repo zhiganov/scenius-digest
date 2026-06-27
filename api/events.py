@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib import config
+from lib import auth, config
 from lib.database import get_event_links
 from lib.event_enrichment import enrich_event, EVENT_URL_RE
 from lib.luma import fetch_luma_events
@@ -118,8 +118,9 @@ class handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         groups = _get_matching_groups(params)
-        # V7: hide private communities unless ?identity= is a member.
-        groups = config.visible_groups(groups, params.get("identity", [None])[0])
+        # Hide private communities unless the verified token marks the caller a member.
+        member_ids = auth.member_ids_from_request(self.headers)
+        groups = config.visible_groups(groups, member_ids)
 
         # If a filter was requested but matched nothing, return empty
         has_filter = params.get("community") or params.get("city")

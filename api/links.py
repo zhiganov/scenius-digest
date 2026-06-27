@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib import config
+from lib import auth, config
 from lib.database import get_unpublished_links
 
 
@@ -27,9 +27,9 @@ class handler(BaseHTTPRequestHandler):
 
         links = get_unpublished_links(since_days=days, group_id=group_id, include_published=include_all)
 
-        # V7: hide links from private communities unless ?identity= is a member.
-        identity = query.get("identity", [None])[0]
-        visible_ids = {str(c.get("group_id")) for c in config.visible_groups(config.MONITORED_GROUPS, identity).values()}
+        # Hide links from private communities unless the verified token marks the caller a member.
+        member_ids = auth.member_ids_from_request(self.headers)
+        visible_ids = {str(c.get("group_id")) for c in config.visible_groups(config.MONITORED_GROUPS, member_ids).values()}
         links = [l for l in links if str(l.get("group_id")) in visible_ids]
 
         response = {

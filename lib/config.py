@@ -152,14 +152,17 @@ def get_event_groups_by_city(city: str) -> dict:
     }
 
 
-def is_visible(cfg: dict, identity: str | None) -> bool:
-    """A community is visible if it is public, or if `identity` (email or DID)
-    is one of its members. Communities with no visibility field are public."""
-    if cfg.get("visibility") != "private":
-        return True
-    return bool(identity) and identity in (cfg.get("members") or [])
+def visible_groups(groups: dict, member_ids: set[str] | None = None) -> dict:
+    """Filter a {key: cfg} dict to communities the caller may see.
 
-
-def visible_groups(groups: dict, identity: str | None = None) -> dict:
-    """Filter a {key: cfg} dict to communities visible to `identity` (V7)."""
-    return {k: v for k, v in groups.items() if is_visible(v, identity)}
+    Public communities (visibility != 'private', or no visibility field) are
+    always included. A private community is included only if its id - the dict
+    key, which is the community-admin community id from /api/config - is in
+    `member_ids`, the stringified community ids from the caller's verified token
+    (auth.member_ids_from_request). Membership now travels in tokens, not config.
+    """
+    member_ids = member_ids or set()
+    return {
+        k: v for k, v in groups.items()
+        if v.get("visibility") != "private" or str(k) in member_ids
+    }
