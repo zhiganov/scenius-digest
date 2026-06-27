@@ -1,6 +1,7 @@
 import json
 import os
 from http.server import BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
 
 import sys
 from pathlib import Path
@@ -17,12 +18,13 @@ CONFIG_READ_SECRET = os.environ.get("CONFIG_READ_SECRET")
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        identity = parse_qs(urlparse(self.path).query).get("identity", [None])[0]
         authorized = bool(CONFIG_READ_SECRET) and (
             self.headers.get("Authorization", "") == f"Bearer {CONFIG_READ_SECRET}"
         )
 
         groups = {}
-        for key, cfg in config.MONITORED_GROUPS.items():
+        for key, cfg in config.visible_groups(config.MONITORED_GROUPS, identity).items():
             entry = {
                 "name": cfg.get("name", key),
                 "topics": cfg.get("topics", {}),

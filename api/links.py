@@ -27,6 +27,11 @@ class handler(BaseHTTPRequestHandler):
 
         links = get_unpublished_links(since_days=days, group_id=group_id, include_published=include_all)
 
+        # V7: hide links from private communities unless ?identity= is a member.
+        identity = query.get("identity", [None])[0]
+        visible_ids = {str(c.get("group_id")) for c in config.visible_groups(config.MONITORED_GROUPS, identity).values()}
+        links = [l for l in links if str(l.get("group_id")) in visible_ids]
+
         response = {
             "links": links,
             "count": len(links),

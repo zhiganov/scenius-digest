@@ -118,6 +118,8 @@ class handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
         groups = _get_matching_groups(params)
+        # V7: hide private communities unless ?identity= is a member.
+        groups = config.visible_groups(groups, params.get("identity", [None])[0])
 
         # If a filter was requested but matched nothing, return empty
         has_filter = params.get("community") or params.get("city")

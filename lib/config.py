@@ -150,3 +150,16 @@ def get_event_groups_by_city(city: str) -> dict:
         key: cfg for key, cfg in get_all_event_groups().items()
         if cfg.get("city") == city
     }
+
+
+def is_visible(cfg: dict, identity: str | None) -> bool:
+    """A community is visible if it is public, or if `identity` (email or DID)
+    is one of its members. Communities with no visibility field are public."""
+    if cfg.get("visibility") != "private":
+        return True
+    return bool(identity) and identity in (cfg.get("members") or [])
+
+
+def visible_groups(groups: dict, identity: str | None = None) -> dict:
+    """Filter a {key: cfg} dict to communities visible to `identity` (V7)."""
+    return {k: v for k, v in groups.items() if is_visible(v, identity)}
