@@ -15,3 +15,9 @@
 - **Decisions:** Enrichment runs live at request time, so the fix took effect on next request. addevent / Zoom-registration pages have no structured data → stay undated (the my-community consumer hides undated). Surfaced during my-community Participation verification.
 - **State:** Merged to main, deployed, verified.
 - **Next:** none.
+
+## 2026-06-27 — #13 gate; community-admin config seam; V7 visibility filter
+- **Done:** (1) **#13** — `/api/groups` hides `group_id`/`output_channel` behind a read-only Bearer secret (avails sends it via its own secret); closed. (2) **Config seam** — `config.py` now reads community config from community-admin `GET /api/config` (60s TTL cache; `MONITORED_GROUPS` via PEP-562; `groups.json` fallback); verified live propagation (~60s). (3) **V7** — `/api/groups` / `/api/events` / `/api/links` filter private communities by `?identity=` (members from `/api/config`); verified hidden-from-anon / visible-to-member live.
+- **Decisions:** `groups.json` stays as the fallback (zero-disruption; R8 held — consumers unchanged). `?identity=` is self-asserted (obscurity, not access control) → being replaced by verified JWTs (community-admin#21).
+- **State:** All deployed + verified live.
+- **Next:** IdP **S2** — verify community-admin JWTs via JWKS, filter by the `memberships` claim, drop `?identity=` + `members`-in-`/api/config`.
