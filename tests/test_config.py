@@ -25,3 +25,13 @@ def test_member_ids_matched_as_strings():
 def test_none_member_ids_treated_as_empty():
     groups = {"7": {"visibility": "private"}, "8": {"visibility": "public"}}
     assert set(config.visible_groups(groups)) == {"8"}
+
+
+def test_manual_events_url_derived_from_ca_config_url(monkeypatch):
+    monkeypatch.setattr(config, "CA_CONFIG_URL", "https://ca.example.com/api/config")
+    assert config.manual_events_url() == "https://ca.example.com/api/events/manual"
+
+
+def test_manual_events_url_none_when_ca_config_url_unset(monkeypatch):
+    monkeypatch.setattr(config, "CA_CONFIG_URL", None)
+    assert config.manual_events_url() is None

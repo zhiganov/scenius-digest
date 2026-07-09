@@ -9,6 +9,7 @@ Telegram events are re-enriched at read time to pick up changes
 
 import json
 import logging
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -113,6 +114,30 @@ def _refresh_event_metadata(events: list[dict]) -> None:
                 event["location"] = fresh["location"]
 
 
+def _fetch_manual_events() -> list[dict]:
+    """Fetch manually-created events from community-admin (Source C, V6).
+
+    Additive and best-effort: any fetch/parse failure (missing config,
+    network error, malformed payload) logs a warning and returns [] so
+    Telegram + Luma/guildhost sources are never affected. Callers still
+    owe the visibility filter (see do_GET) — this returns every manual
+    event community-admin has, unscoped.
+    """
+    url = config.manual_events_url()
+    if not url or not config.CA_CONFIG_SECRET:
+        return []
+    try:
+        req = urllib.request.Request(
+            url, headers={"Authorization": f"Bearer {config.CA_CONFIG_SECRET}"}
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            payload = json.loads(resp.read().decode())
+        return payload.get("events", [])
+    except Exception as e:
+        logger.warning(f"manual events fetch failed, skipping: {e}")
+        return []
+
+
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -166,8 +191,14 @@ class handler(BaseHTTPRequestHandler):
         api_urls = {_normalize_url(e["url"]) for e in api_events}
         tg_events = [e for e in tg_events if _normalize_url(e["url"]) not in api_urls]
 
+        # Source C: manual events from community-admin (community-admin#6, V6).
+        # Filtered against `groups`, which is ALREADY visibility-filtered above
+        # (config.visible_groups) — so a private community the caller isn't a
+        # member of is dropped here automatically, same as Sources A and B.
+        manual_events = [e for e in _fetch_manual_events() if e.get("community") in groups]
+
         # Merge and sort by starts_at ascending, nulls last
-        all_events = api_events + tg_events
+        all_events = api_events + tg_events + manual_events
         all_events.sort(key=lambda e: (e.get("starts_at") is None, e.get("starts_at") or ""))
 
         self.send_response(200)
