@@ -24,6 +24,19 @@ SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 CA_CONFIG_URL = os.getenv("CA_CONFIG_URL")
 CA_CONFIG_SECRET = os.getenv("CA_CONFIG_SECRET")
 
+def manual_events_url() -> str | None:
+    """Derive the community-admin manual-events endpoint from CA_CONFIG_URL.
+
+    community-admin exposes manual events (V6) at GET /api/events/manual,
+    a sibling of the /api/config endpoint this module already reads.
+    Returns None when the config-seam env var is unset (no manual events
+    integration configured), matching CA_CONFIG_URL's own convention.
+    """
+    if not CA_CONFIG_URL:
+        return None
+    return CA_CONFIG_URL.replace("/api/config", "/api/events/manual")
+
+
 # In Vercel, __file__ is in lib/, JSON configs are in project root
 _PROJECT_ROOT = Path(__file__).parent.parent
 
