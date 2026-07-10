@@ -33,3 +33,9 @@
 - **Decisions:** No scenius-digest code change — behaving as designed. (The `topics:{links,memes}` field in the /api/links response is hardcoded scenius-centric counting — a red herring, not per-group.)
 - **State:** cibc + scenius public again; digest posted to @citizen_infra (msg 385). Failure mode to remember: a community flipped to `private` upstream silently empties its PUBLIC digest/feed even though the DB still holds the links — check `/api/config` visibility before suspecting this repo. The digest read-path is unauthenticated by design.
 - **Next:** nsrt is dark — absent from `/api/config` (not active or missing group_id) → community-admin#31.
+
+## 2026-07-10 — V6 Source C (manual events merge)
+- **Done:** Added community-admin manual events as a third source in `GET /api/events` (V6). `lib/config.py: manual_events_url()` derives the endpoint from `CA_CONFIG_URL`; `_fetch_manual_events()` is Bearer-authed + best-effort (returns `[]` on any failure, never breaks the feed); Source C filters `community in groups` against the ALREADY visibility-filtered `groups`, so private communities inherit the gate for free. PR #14 → `9e51cd9`, merged + deployed. 21 tests (10 new).
+- **Decisions:** No new env var (reuse `CA_CONFIG_URL`/`CA_CONFIG_SECRET`). Merge is additive; degrades gracefully.
+- **State:** main clean; live. Verified end-to-end via community-admin (a manual event on cibc surfaced here as `source:manual`, then removed).
+- **Next:** none for this repo; MC/DN voting evolves under the consent-surface initiative (community-admin#39).
