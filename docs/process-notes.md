@@ -39,3 +39,9 @@
 - **Decisions:** No new env var (reuse `CA_CONFIG_URL`/`CA_CONFIG_SECRET`). Merge is additive; degrades gracefully.
 - **State:** main clean; live. Verified end-to-end via community-admin (a manual event on cibc surfaced here as `source:manual`, then removed).
 - **Next:** none for this repo; MC/DN voting evolves under the consent-surface initiative (community-admin#39).
+
+## 2026-07-12 — vercel.json send-message/backfill-og rewrites
+- **Done:** Added `/api/send-message` + `/api/backfill-og` → underscore-filename rewrites in `vercel.json` (mirroring existing `mark-published`), fixing a silent 404 — the documented hyphen URLs were unreachable (only `mark-published` had a rewrite). Pushed to main (`1b6cde0`), auto-deployed, verified. Was breaking community-admin's consent notifier.
+- **Decisions:** none (config completion).
+- **State:** main clean + pushed + deployed; documented API URLs now all resolve.
+- **Next:** none.
