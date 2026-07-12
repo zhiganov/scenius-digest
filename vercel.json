@@ -1,5 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/mark-published", "destination": "/api/mark_published" }
+    { "source": "/api/mark-published", "destination": "/api/mark_published" },
+    { "source": "/api/send-message", "destination": "/api/send_message" },
+    { "source": "/api/backfill-og", "destination": "/api/backfill_og" }
   ]
 }
