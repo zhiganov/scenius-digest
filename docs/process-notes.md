@@ -45,3 +45,9 @@
 - **Decisions:** none (config completion).
 - **State:** main clean + pushed + deployed; documented API URLs now all resolve.
 - **Next:** none.
+
+## 2026-07-16 — Probe: reactions here are ATTRIBUTED
+- **Done:** Read-only probe of the live Bot API (`getMe`/`getWebhookInfo`/`getChat`/`getChatMember`) to settle whether reaction updates would be attributed or anonymous. No prod change made.
+- **Decisions:** Answered the question without flipping `allowed_updates` — chat type + bot admin status fully determine it, so `getChat` + `getChatMember` sufficed.
+- **State:** All three monitored groups (scenius `-1002141367711`, cibc `-1003188266615`, nsrt `-1003669626939`) are **supergroups with @sensemaking_bot already an administrator** → `message_reaction`, i.e. attributed, carrying the reacting user. Only the output *channels* give anonymous `message_reaction_count`, and proposals don't live there. `getWebhookInfo` confirms `allowed_updates: ['message']`, url `.../api/webhook`, 0 pending. Bot id 8511113052; token in `.env.local` is live.
+- **Next:** #15 — handle `message_reaction` in `api/webhook.py:52` (currently early-returns on missing `message` key), and **store a salted hash of the reactor id, never the id**: attribution means we'd otherwise be collecting who-reacted-to-what across three communities. `allowed_updates` is a manual `setWebhook` curl (README:86-89), not code — a code-only PR silently does nothing.
