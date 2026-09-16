@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib import auth, config
+from lib import auth, config, cors
 from lib.database import get_unpublished_links
 
 
@@ -52,5 +52,9 @@ class handler(BaseHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
+        cors.send_cors_headers(self)
         self.end_headers()
         self.wfile.write(json.dumps(response, default=str).encode())
+
+    def do_OPTIONS(self):
+        cors.handle_options(self)
