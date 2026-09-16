@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib import auth, config
+from lib import auth, config, cors
 
 # group_id + output_channel are Telegram internals (source-group / output-channel
 # chat IDs). They are exposed only to callers presenting the read-only config
@@ -38,5 +38,9 @@ class handler(BaseHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
+        cors.send_cors_headers(self)
         self.end_headers()
         self.wfile.write(json.dumps({"groups": groups}).encode())
+
+    def do_OPTIONS(self):
+        cors.handle_options(self)

@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib import auth, config
+from lib import auth, config, cors
 from lib.database import get_event_links
 from lib.event_enrichment import enrich_event, EVENT_URL_RE
 from lib.luma import fetch_luma_events
@@ -152,7 +152,7 @@ class handler(BaseHTTPRequestHandler):
         if has_filter and not groups:
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
+            cors.send_cors_headers(self)
             self.end_headers()
             self.wfile.write(json.dumps({"events": []}).encode())
             return
@@ -203,13 +203,9 @@ class handler(BaseHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")
+        cors.send_cors_headers(self)
         self.end_headers()
         self.wfile.write(json.dumps({"events": all_events}).encode())
 
     def do_OPTIONS(self):
-        self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.end_headers()
+        cors.handle_options(self)
