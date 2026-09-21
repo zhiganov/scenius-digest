@@ -35,3 +35,38 @@ def test_manual_events_url_derived_from_ca_config_url(monkeypatch):
 def test_manual_events_url_none_when_ca_config_url_unset(monkeypatch):
     monkeypatch.setattr(config, "CA_CONFIG_URL", None)
     assert config.manual_events_url() is None
+
+
+def test_event_source_keeps_community_admin_visibility(monkeypatch):
+    # A private Community Admin community that also has an event source must stay
+    # private: the event source adds feeds, it does not replace the community.
+    monkeypatch.setattr(config, "fetch_config", lambda: {
+        "pxxi": {"name": "Private group", "visibility": "private", "city": None},
+    })
+    monkeypatch.setattr(config, "EVENT_SOURCES", {
+        "pxxi": {"name": "Calendar name", "city": None, "event_apis": [{"type": "luma", "url": "u"}]},
+    })
+    merged = config.get_all_event_groups()
+    assert merged["pxxi"]["visibility"] == "private"
+    assert merged["pxxi"]["name"] == "Private group"
+    assert merged["pxxi"]["event_apis"] == [{"type": "luma", "url": "u"}]
+    assert config.visible_groups(merged, set()) == {}
+    assert set(config.visible_groups(merged, {"pxxi"})) == {"pxxi"}
+
+
+def test_event_source_without_community_admin_entry_is_unchanged(monkeypatch):
+    monkeypatch.setattr(config, "fetch_config", lambda: {})
+    monkeypatch.setattr(config, "EVENT_SOURCES", {
+        "metagov": {"name": "Metagov", "city": None, "event_apis": [{"type": "luma"}]},
+    })
+    assert config.get_all_event_groups() == {
+        "metagov": {"name": "Metagov", "city": None, "event_apis": [{"type": "luma"}]},
+    }
+
+
+def test_event_source_fills_fields_community_admin_leaves_empty(monkeypatch):
+    monkeypatch.setattr(config, "fetch_config", lambda: {
+        "x": {"name": "X", "visibility": "public", "city": None},
+    })
+    monkeypatch.setattr(config, "EVENT_SOURCES", {"x": {"city": "london", "event_apis": []}})
+    assert config.get_all_event_groups()["x"]["city"] == "london"

@@ -153,7 +153,13 @@ def get_groups_by_city(city: str) -> dict:
 def get_all_event_groups() -> dict:
     """Return all communities with event sources (groups + event_sources)."""
     merged = dict(fetch_config())
-    merged.update(EVENT_SOURCES)
+    # Community Admin owns a community's identity and visibility; event_sources.json
+    # only adds its event feeds. A plain update() replaced the whole entry, so a
+    # private community that also had an event source lost `visibility` and
+    # became public in /api/events.
+    for key, source in EVENT_SOURCES.items():
+        community = {k: v for k, v in merged.get(key, {}).items() if v is not None}
+        merged[key] = {**source, **community}
     return merged
 
 
