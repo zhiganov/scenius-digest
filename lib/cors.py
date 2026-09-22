@@ -3,6 +3,7 @@ import os
 
 DEFAULT_ALLOWED_ORIGINS = frozenset({
     "https://my.citizeninfra.org",
+    "https://philanthropic-xxi.netlify.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 })

@@ -7,6 +7,7 @@ from lib import config, cors
 
 
 ALLOWED_ORIGIN = "https://my.citizeninfra.org"
+PXXI_ORIGIN = "https://philanthropic-xxi.netlify.app"
 
 
 def _handler(handler_class, origin=ALLOWED_ORIGIN, request_headers=None):
@@ -68,6 +69,17 @@ def test_groups_get_allows_production_web_origin(monkeypatch):
     response = instance.wfile.getvalue().decode()
     assert response.splitlines()[0].endswith("200 OK")
     assert f"Access-Control-Allow-Origin: {ALLOWED_ORIGIN}" in response
+
+
+@pytest.mark.parametrize("handler_class", [groups.handler, links.handler, events.handler])
+def test_browser_read_endpoints_allow_pxxi_web_origin(handler_class):
+    instance = _handler(handler_class, PXXI_ORIGIN)
+
+    instance.do_OPTIONS()
+
+    response = instance.wfile.getvalue().decode()
+    assert response.splitlines()[0].endswith("204 No Content")
+    assert f"Access-Control-Allow-Origin: {PXXI_ORIGIN}" in response
 
 
 @pytest.mark.parametrize(
