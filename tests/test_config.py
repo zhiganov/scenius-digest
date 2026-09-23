@@ -70,3 +70,19 @@ def test_event_source_fills_fields_community_admin_leaves_empty(monkeypatch):
     })
     monkeypatch.setattr(config, "EVENT_SOURCES", {"x": {"city": "london", "event_apis": []}})
     assert config.get_all_event_groups()["x"]["city"] == "london"
+
+
+def test_pxxi_luma_source_stays_private_without_community_admin_config(monkeypatch):
+    monkeypatch.setattr(config, "fetch_config", lambda: {})
+
+    groups = config.get_all_event_groups()
+    pxxi = groups["philanthropic-xxi"]
+
+    assert pxxi["visibility"] == "private"
+    assert pxxi["event_apis"] == [{
+        "type": "luma",
+        "url": "https://luma.com/philanthropic",
+        "api_id": "cal-1e5i1ZDFMdNw7z9",
+    }]
+    assert "philanthropic-xxi" not in config.visible_groups(groups, set())
+    assert "philanthropic-xxi" in config.visible_groups(groups, {"philanthropic-xxi"})
