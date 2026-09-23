@@ -10,9 +10,9 @@ Curated highlights from multiple communities, automatically published to their r
 | Novi Sad Relational Tech | [@nsrt_news](https://t.me/nsrt_news) | Paused |
 | Sensemaking Scenius | [@scenius](https://t.me/scenius) | Retired 2026-08-25 |
 
-Several further communities are event-only — Newspeak House, Civic Tech Toronto, Metagov
-and the Social Internet Unconference contribute events through `/api/events` without a
-Telegram link feed or a digest.
+Several further communities are event-only — Newspeak House, Civic Tech Toronto, Metagov,
+the private Philanthropic XXI community, and the Social Internet Unconference contribute
+events through `/api/events` without using this service for their Telegram link feed.
 
 *(The repo is named after Sensemaking Scenius, the community it was originally built for.
 That group wound down in August 2026; the name stayed.)*

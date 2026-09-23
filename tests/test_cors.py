@@ -69,6 +69,7 @@ def test_groups_get_allows_production_web_origin(monkeypatch):
     response = instance.wfile.getvalue().decode()
     assert response.splitlines()[0].endswith("200 OK")
     assert f"Access-Control-Allow-Origin: {ALLOWED_ORIGIN}" in response
+    assert '"visibility": "public"' in response
 
 
 @pytest.mark.parametrize("handler_class", [groups.handler, links.handler, events.handler])

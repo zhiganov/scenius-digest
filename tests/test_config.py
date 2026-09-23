@@ -66,7 +66,37 @@ def test_event_source_without_community_admin_entry_is_unchanged(monkeypatch):
 
 def test_event_source_fills_fields_community_admin_leaves_empty(monkeypatch):
     monkeypatch.setattr(config, "fetch_config", lambda: {
-        "x": {"name": "X", "visibility": "public", "city": None},
+        "x": {"name": "X", "visibility": "public", "city": None, "event_apis": []},
     })
-    monkeypatch.setattr(config, "EVENT_SOURCES", {"x": {"city": "london", "event_apis": []}})
-    assert config.get_all_event_groups()["x"]["city"] == "london"
+    source_api = {"type": "luma", "url": "https://luma.com/example"}
+    monkeypatch.setattr(config, "EVENT_SOURCES", {"x": {"city": "london", "event_apis": [source_api]}})
+    merged = config.get_all_event_groups()["x"]
+    assert merged["city"] == "london"
+    assert merged["event_apis"] == [source_api]
+
+
+def test_event_source_combines_distinct_community_admin_feeds(monkeypatch):
+    static_api = {"type": "luma", "url": "https://luma.com/example"}
+    admin_api = {"type": "guildhost", "url": "https://guild.host/example"}
+    monkeypatch.setattr(config, "fetch_config", lambda: {
+        "x": {"name": "X", "visibility": "public", "event_apis": [admin_api, static_api]},
+    })
+    monkeypatch.setattr(config, "EVENT_SOURCES", {"x": {"event_apis": [static_api]}})
+
+    assert config.get_all_event_groups()["x"]["event_apis"] == [static_api, admin_api]
+
+
+def test_pxxi_luma_source_stays_private_without_community_admin_config(monkeypatch):
+    monkeypatch.setattr(config, "fetch_config", lambda: {})
+
+    groups = config.get_all_event_groups()
+    pxxi = groups["philanthropic-xxi"]
+
+    assert pxxi["visibility"] == "private"
+    assert pxxi["event_apis"] == [{
+        "type": "luma",
+        "url": "https://luma.com/philanthropic",
+        "api_id": "cal-1e5i1ZDFMdNw7z9",
+    }]
+    assert "philanthropic-xxi" not in config.visible_groups(groups, set())
+    assert "philanthropic-xxi" in config.visible_groups(groups, {"philanthropic-xxi"})

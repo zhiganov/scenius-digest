@@ -26,6 +26,10 @@ class handler(BaseHTTPRequestHandler):
         for key, cfg in config.visible_groups(config.MONITORED_GROUPS, member_ids).items():
             entry = {
                 "name": cfg.get("name", key),
+                # Consumers need this after sign-out so a stale in-memory member
+                # snapshot cannot be mistaken for an anonymously readable source.
+                # Private entries reach this point only for verified members.
+                "visibility": cfg.get("visibility", "public"),
                 "topics": cfg.get("topics", {}),
                 "city": cfg.get("city"),
                 "event_topics": cfg.get("event_topics", []),

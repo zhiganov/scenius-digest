@@ -180,6 +180,7 @@ Format:
 | Newspeak House | newspeak-house | — (community-admin) | — | Luma |
 | Civic Tech Toronto | civic-tech-toronto | — (community-admin) | — | guild.host |
 | Metagov | metagov | — (community-admin) | — | Luma |
+| Philanthropic XXI | philanthropic-xxi | — (dedicated Crapotkin service) | — | Luma (private) |
 
 ## Reference
 

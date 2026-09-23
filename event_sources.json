@@ -19,5 +19,13 @@
     "event_apis": [
       { "type": "luma", "url": "https://luma.com/metagov-calendar", "api_id": "cal-TQmrEkYDPwQCqYa" }
     ]
+  },
+  "philanthropic-xxi": {
+    "name": "Philanthropic XXI",
+    "city": null,
+    "visibility": "private",
+    "event_apis": [
+      { "type": "luma", "url": "https://luma.com/philanthropic", "api_id": "cal-1e5i1ZDFMdNw7z9" }
+    ]
   }
 }
