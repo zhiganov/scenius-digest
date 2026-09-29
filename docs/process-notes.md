@@ -69,3 +69,9 @@
 - **Decisions:** Rule scoped to machine-readable prefixes rather than the whole host — `/panel` still 403s for `urllib`, which is the proof it is not zone-wide. Free plan accepted `set_config`, so the WAF-skip fallback (`products: ["bic"]`) was never needed. Verified with `PyJWKClient` rather than curl, since curl was never the client that broke.
 - **State:** Live and healthy. Anonymous `/api/groups` → `['cibc']` (unchanged), `/api/links` → 33 (unchanged), `/api/events` → 25 including one `manual`, which exercises the derived third URL. Both hosts serve the same `kid 9HNsuqnfY1gnbEu8dgwEy3jruU2Bv1tDjB81bd71kz8`. `.env.example` no longer pins the Railway host and now carries `CA_JWKS_URL` / `CA_ISSUER`, whose absence is part of why #16 was invisible.
 - **Next:** None here. The **canary** is the thing to carry forward: a broken `CA_CONFIG_URL` does not error, it silently makes private communities public, and anonymous `GET /api/groups` detects it with no token. Run it after any change to these vars. Open elsewhere: community-admin#26 item 1, retiring `admin.zhgnv.com` as a sign-in door.
+
+## 2026-09-21 — event sources kept private communities private
+- **Done:** #24 (`dc47e1e`): `get_all_event_groups()` merged `event_sources.json` over the Community Admin config with `dict.update()`, so a private community with an event source under its own key lost `visibility` and showed in `/api/events` unauthenticated. Now a per-field merge where Community Admin wins. Three tests; 39 pass.
+- **Decisions:** Fixed in code rather than copying `visibility: private` into `event_sources.json`, so every future private community is covered.
+- **State:** Deployed and verified: `/api/events` returns the identical 17 events before and after.
+- **Next:** add the Philanthropic XXI Luma calendar (`cal-1e5i1ZDFMdNw7z9`), keyed to its Community Admin id, once that community exists.
